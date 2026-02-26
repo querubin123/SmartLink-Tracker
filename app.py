@@ -12,6 +12,7 @@ import time
 import tempfile
 import re
 import json
+import urllib.parse
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -917,55 +918,47 @@ with tab3:
     st.markdown("### 📡 Live Click Feed")
     st.markdown("*Watch clicks happen in real-time! Updates every 5 seconds.*")
     
-    # Create placeholder for auto-refresh
-    feed_placeholder = st.empty()
-    
-    while True:
-        with feed_placeholder.container():
-            try:
-                # Get recent clicks across all links
-                c = conn.cursor()
-                c.execute("""
-                    SELECT c.timestamp, COALESCE(l.custom_id, l.id), c.country, c.city, 
-                           c.device_type, c.browser, c.os
-                    FROM clicks c
-                    JOIN links l ON c.link_id = l.id
-                    ORDER BY c.id DESC LIMIT 20
-                """)
-                recent_clicks = c.fetchall()
+    # Get recent clicks across all links
+    try:
+        c = conn.cursor()
+        c.execute("""
+            SELECT c.timestamp, COALESCE(l.custom_id, l.id), c.country, c.city, 
+                   c.device_type, c.browser, c.os
+            FROM clicks c
+            JOIN links l ON c.link_id = l.id
+            ORDER BY c.id DESC LIMIT 20
+        """)
+        recent_clicks = c.fetchall()
+        
+        if recent_clicks:
+            for click in recent_clicks:
+                timestamp, link_id, country, city, device, browser, os = click
                 
-                if recent_clicks:
-                    for click in recent_clicks:
-                        timestamp, link_id, country, city, device, browser, os = click
-                        
-                        # Create an enhanced card for each click
-                        st.markdown(f"""
-                        <div class="click-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 1.1rem;"><b>🔗 {link_id}</b></span>
-                                <span style="color: #666; font-size: 0.9rem;">{timestamp[:19]}</span>
-                            </div>
-                            <div style="display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap;">
-                                <span>🌍 {country}{f' ({city})' if city else ''}</span>
-                                <span>📱 {device}</span>
-                                <span>🌐 {browser}</span>
-                                <span>💻 {os}</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.caption(f"🔄 Auto-refreshing... Last updated: {datetime.now().strftime('%H:%M:%S')}")
-                else:
-                    st.info("📭 No clicks recorded yet. Share your links to start tracking!")
-                    
-            except Exception as e:
-                st.info("📭 Waiting for first clicks...")
+                # Create an enhanced card for each click
+                st.markdown(f"""
+                <div class="click-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 1.1rem;"><b>🔗 {link_id}</b></span>
+                        <span style="color: #666; font-size: 0.9rem;">{timestamp[:19]}</span>
+                    </div>
+                    <div style="display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap;">
+                        <span>🌍 {country}{f' ({city})' if city else ''}</span>
+                        <span>📱 {device}</span>
+                        <span>🌐 {browser}</span>
+                        <span>💻 {os}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Wait before refreshing
-            time.sleep(5)
-            st.rerun()
+            # Auto-refresh note
+            st.caption("🔄 Live feed updates on page refresh")
+        else:
+            st.info("📭 No clicks recorded yet. Share your links to start tracking!")
+            
+    except Exception as e:
+        st.info("📭 Waiting for first clicks...")
 
-# TOOL 5: Click Tracker (hidden redirect) - FIXED with enhanced geolocation
+# FIXED: Click Tracker (hidden redirect) - This must run BEFORE any other UI elements
 if 'id' in st.query_params:
     link_id = st.query_params['id']
     
@@ -976,6 +969,8 @@ if 'id' in st.query_params:
         result = c.fetchone()
         
         if result:
+            original_url = result[0]
+            
             # Get user agent for detailed device info
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             
@@ -1001,6 +996,7 @@ if 'id' in st.query_params:
             referrer = st.query_params.get('referrer', 'Direct')
             
             # Insert click data with retry logic
+            click_success = False
             max_retries = 3
             for attempt in range(max_retries):
                 try:
@@ -1030,96 +1026,130 @@ if 'id' in st.query_params:
                     # Update click count
                     c.execute("UPDATE links SET clicks = clicks + 1 WHERE id = ?", (link_id,))
                     conn.commit()
+                    click_success = True
+                    print(f"✅ Click tracked for link: {link_id}")
                     break
-                except sqlite3.OperationalError as e:
-                    if "database is locked" in str(e) and attempt < max_retries - 1:
+                except Exception as e:
+                    print(f"Error tracking click (attempt {attempt+1}): {e}")
+                    if attempt < max_retries - 1:
                         time.sleep(0.5)
                         continue
-                    else:
-                        print(f"Database error: {e}")
-                        break
-                except Exception as e:
-                    print(f"Error: {e}")
-                    break
             
-            # Enhanced redirect page with more info
-            st.markdown(f"""
-            <style>
-                .redirect-container {{
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    text-align: center;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 20px;
-                }}
-                .info-card {{
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    padding: 20px;
-                    border-radius: 15px;
-                    margin: 20px 0;
-                    width: 100%;
-                    max-width: 500px;
-                }}
-                .loader {{
-                    border: 5px solid rgba(255,255,255,0.3);
-                    border-top: 5px solid white;
-                    border-radius: 50%;
-                    width: 50px;
-                    height: 50px;
-                    animation: spin 1s linear infinite;
-                    margin: 20px auto;
-                }}
-                @keyframes spin {{
-                    0% {{ transform: rotate(0deg); }}
-                    100% {{ transform: rotate(360deg); }}
-                }}
-                .location-info {{
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 10px;
-                    margin: 15px 0;
-                }}
-            </style>
-            
-            <div class="redirect-container">
-                <h1 style="font-size: 3rem;">🔗</h1>
-                <h2>SmartLink Tracker</h2>
-                <div class="info-card">
-                    <h3>📍 Your Location</h3>
-                    <div class="location-info">
-                        <div>
-                            <p>🌍 Country</p>
-                            <p><strong>{geo_data['country']}</strong></p>
+            # Always redirect, even if tracking fails
+            if click_success:
+                # Show tracking page with info
+                st.markdown(f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta http-equiv="refresh" content="2;url={original_url}">
+                    <style>
+                        body {{
+                            margin: 0;
+                            padding: 0;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }}
+                        .container {{
+                            text-align: center;
+                            padding: 2rem;
+                            max-width: 600px;
+                        }}
+                        .info-card {{
+                            background: rgba(255, 255, 255, 0.1);
+                            backdrop-filter: blur(10px);
+                            padding: 2rem;
+                            border-radius: 20px;
+                            margin: 2rem 0;
+                        }}
+                        .location-grid {{
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 1rem;
+                            margin: 1.5rem 0;
+                        }}
+                        .location-item {{
+                            background: rgba(255, 255, 255, 0.05);
+                            padding: 1rem;
+                            border-radius: 10px;
+                        }}
+                        .loader {{
+                            width: 50px;
+                            height: 50px;
+                            border: 5px solid rgba(255,255,255,0.3);
+                            border-top: 5px solid white;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            margin: 2rem auto;
+                        }}
+                        @keyframes spin {{
+                            0% {{ transform: rotate(0deg); }}
+                            100% {{ transform: rotate(360deg); }}
+                        }}
+                        h1 {{ font-size: 3rem; margin: 0; }}
+                        h2 {{ margin: 0.5rem 0; }}
+                        p {{ margin: 0.5rem 0; opacity: 0.9; }}
+                        a {{ color: white; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>🔗</h1>
+                        <h2>SmartLink Tracker</h2>
+                        <div class="info-card">
+                            <h3>📍 Your Location</h3>
+                            <div class="location-grid">
+                                <div class="location-item">
+                                    <div>🌍 Country</div>
+                                    <strong>{geo_data['country']}</strong>
+                                </div>
+                                <div class="location-item">
+                                    <div>🏙️ City</div>
+                                    <strong>{geo_data['city']}</strong>
+                                </div>
+                                <div class="location-item">
+                                    <div>📱 Device</div>
+                                    <strong>{device_type}</strong>
+                                </div>
+                                <div class="location-item">
+                                    <div>🌐 Browser</div>
+                                    <strong>{browser}</strong>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p>🏙️ City</p>
-                            <p><strong>{geo_data['city']}</strong></p>
-                        </div>
-                        <div>
-                            <p>📱 Device</p>
-                            <p><strong>{device_type}</strong></p>
-                        </div>
-                        <div>
-                            <p>🌐 Browser</p>
-                            <p><strong>{browser}</strong></p>
-                        </div>
+                        <div class="loader"></div>
+                        <p style="font-size: 1.2rem;">Tracking your click...</p>
+                        <p>Redirecting to destination in 2 seconds</p>
+                        <p><small>If you're not redirected, <a href="{original_url}">click here</a></small></p>
                     </div>
-                </div>
-                <div class="loader"></div>
-                <p style="font-size: 1.2rem;">Tracking your click... Redirecting in 2 seconds</p>
-                <p><small>You're being redirected to your destination</small></p>
-                <p><a href="{result[0]}" style="color: white; text-decoration: underline;">Click here if not redirected</a></p>
-            </div>
+                </body>
+                </html>
+                """, unsafe_allow_html=True)
+            else:
+                # Simple redirect if tracking failed
+                st.markdown(f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta http-equiv="refresh" content="1;url={original_url}">
+                </head>
+                <body>
+                    <p>Redirecting...</p>
+                </body>
+                </html>
+                """, unsafe_allow_html=True)
             
-            <meta http-equiv="refresh" content="2;url={result[0]}">
-            """, unsafe_allow_html=True)
+            # Stop further Streamlit execution
+            st.stop()
+            
         else:
             st.error("❌ Link not found. Please check the URL.")
+            
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         if 'result' in locals() and result and result[0]:

@@ -725,6 +725,7 @@ st.markdown(f"""
 #  time functions, and the rest of your app code here - everything from your original code]
 
 # Database setup
+# Database setup
 @st.cache_resource
 def init_db():
     if os.getenv('STREAMLIT_SERVER_ADDRESS'):
@@ -783,11 +784,68 @@ def init_db():
     conn.commit()
     return conn
 
-# Initialize database
+# Initialize database with migration
 try:
     conn = init_db()
     c = conn.cursor()
+    
+    # ============================================================
+    # DATABASE MIGRATION: Add missing columns if they don't exist
+    # ============================================================
+    def migrate_database():
+        """Add missing columns to existing tables"""
+        try:
+            # Check existing columns in clicks table
+            c.execute("PRAGMA table_info(clicks)")
+            existing_columns = [column[1] for column in c.fetchall()]
+            
+            # Columns to add if missing
+            columns_to_add = {
+                'short_code': 'TEXT',
+                'region': 'TEXT',
+                'latitude': 'REAL',
+                'longitude': 'REAL',
+                'isp': 'TEXT',
+                'browser_version': 'TEXT',
+                'os_version': 'TEXT',
+                'session_id': 'TEXT',
+                'is_unique': 'BOOLEAN DEFAULT 1'
+            }
+            
+            for column_name, column_type in columns_to_add.items():
+                if column_name not in existing_columns:
+                    try:
+                        c.execute(f"ALTER TABLE clicks ADD COLUMN {column_name} {column_type}")
+                        conn.commit()
+                        print(f"✅ Added missing column: {column_name}")
+                    except Exception as e:
+                        print(f"⚠️ Could not add column {column_name}: {e}")
+            
+            # Update existing records to set short_code from link_id if needed
+            if 'short_code' in columns_to_add and 'short_code' not in existing_columns:
+                try:
+                    c.execute("""
+                        UPDATE clicks 
+                        SET short_code = (
+                            SELECT short_code FROM links 
+                            WHERE links.id = clicks.link_id
+                        )
+                        WHERE short_code IS NULL
+                    """)
+                    conn.commit()
+                    print("✅ Updated short_code from link_id")
+                except:
+                    pass
+            
+        except Exception as e:
+            print(f"Migration error: {e}")
+    
+    # Run migration
+    migrate_database()
+    
+    # Test database is writable
     c.execute("SELECT 1")
+    
 except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()

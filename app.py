@@ -109,11 +109,8 @@ with tab1:
                     """, (link_id, original_url, 0, datetime.now().isoformat(), custom_id_value))
                     conn.commit()
                     
-                    # Get the app URL
-                    if os.getenv('STREAMLIT_SERVER_ADDRESS'):
-                        base_url = f"https://{os.getenv('STREAMLIT_SERVER_ADDRESS', '').split(':')[0]}"
-                    else:
-                        base_url = "http://localhost:8501"
+                    # FIXED: Use your actual deployed URL
+                    base_url = "https://smartlink-tracker.streamlit.app"
                     
                     short_url = f"{base_url}/?id={link_id}"
                     
@@ -134,10 +131,10 @@ with tab1:
                     
                 except sqlite3.IntegrityError as e:
                     st.error(f"❌ This custom ID is already taken. Please choose another one.")
-                    print(f"Database error: {e}")  # This will show in logs
+                    print(f"Database error: {e}")
                 except Exception as e:
                     st.error(f"❌ An error occurred: {str(e)}")
-                    print(f"Error: {e}")  # This will show in logs
+                    print(f"Error: {e}")
             else:
                 st.error("❌ Please enter a URL")
 

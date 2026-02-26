@@ -16,6 +16,8 @@ import random
 import string
 import hashlib
 import urllib.parse
+import pytz
+from tzlocal import get_localzone
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -81,10 +83,10 @@ st.markdown("""
         transform: translateY(-2px);
     }
     
-    /* URL display */
+    /* URL display - FIXED for clickable links */
     .url-container {
         background: #f8fafc;
-        padding: 1rem;
+        padding: 1.2rem;
         border-radius: 0.5rem;
         border: 1px solid #e2e8f0;
         margin: 1rem 0;
@@ -95,10 +97,44 @@ st.markdown("""
         font-weight: 600;
         word-break: break-all;
     }
+    .short-url a {
+        color: var(--primary);
+        text-decoration: none;
+        background: #e6f0ff;
+        padding: 0.3rem 0.8rem;
+        border-radius: 0.3rem;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+    .short-url a:hover {
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
     .original-url {
         color: #64748b;
         font-size: 0.875rem;
         word-break: break-all;
+        margin-top: 0.5rem;
+    }
+    
+    /* Copy button styling */
+    .copy-btn {
+        background: white;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        padding: 0.3rem 1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        margin-left: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+        background: var(--primary);
+        color: white;
     }
     
     /* Metric cards */
@@ -194,7 +230,7 @@ st.markdown("""
         color: #1e40af;
     }
     
-    /* Success message */
+    /* Success message - FIXED with better styling */
     .success-box {
         background: #ecfdf5;
         padding: 1.5rem;
@@ -202,6 +238,14 @@ st.markdown("""
         border: 1px solid #a7f3d0;
         color: #065f46;
         margin: 1rem 0;
+    }
+    
+    /* Timestamp styling */
+    .timestamp {
+        color: #64748b;
+        font-size: 0.8rem;
+        font-family: monospace;
+        margin-top: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -222,7 +266,7 @@ def init_db():
     
     c = conn.cursor()
     
-    # Links table
+    # Links table - store timestamps in UTC but we'll convert on display
     c.execute('''CREATE TABLE IF NOT EXISTS links (
         id TEXT PRIMARY KEY,
         original_url TEXT NOT NULL,
@@ -273,6 +317,44 @@ try:
 except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()
+
+# Function to get local time
+def get_local_time():
+    """Get current time in local timezone"""
+    try:
+        # Try to get local timezone
+        local_tz = get_localzone()
+        local_time = datetime.now(local_tz)
+        return local_time.isoformat()
+    except:
+        # Fallback to UTC if tzlocal fails
+        return datetime.utcnow().isoformat()
+
+# Function to format timestamp for display
+def format_timestamp(iso_timestamp):
+    """Convert ISO timestamp to local time for display"""
+    try:
+        if not iso_timestamp:
+            return "Unknown"
+        
+        # Parse the timestamp
+        if 'Z' in iso_timestamp:
+            iso_timestamp = iso_timestamp.replace('Z', '+00:00')
+        
+        dt = datetime.fromisoformat(iso_timestamp)
+        
+        # Convert to local timezone
+        try:
+            local_tz = get_localzone()
+            if dt.tzinfo is None:
+                # Assume UTC if no timezone
+                dt = dt.replace(tzinfo=timezone.utc)
+            local_dt = dt.astimezone(local_tz)
+            return local_dt.strftime('%Y-%m-%d %H:%M:%S %Z')
+        except:
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
+    except:
+        return iso_timestamp
 
 # Professional header
 st.markdown(f"""
@@ -456,7 +538,10 @@ with tab1:
                 expires_at = None
                 if expires_in != "Never":
                     days = int(expires_in.split()[0])
-                    expires_at = (datetime.now() + timedelta(days=days)).isoformat()
+                    expires_at = (datetime.utcnow() + timedelta(days=days)).isoformat()
+                
+                # Get local time for creation
+                local_created_time = get_local_time()
                 
                 # Insert into database
                 try:
@@ -465,26 +550,54 @@ with tab1:
                         INSERT INTO links (id, original_url, short_code, created_date, expires_at, 
                                          utm_source, utm_medium, utm_campaign, clicks)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-                    """, (link_id, url, short_code, datetime.now().isoformat(), expires_at,
+                    """, (link_id, url, short_code, local_created_time, expires_at,
                           utm_source, utm_medium, utm_campaign))
                     conn.commit()
                     
                     short_url = f"{APP_URL}/?go={short_code}"
                     
-                    # Success message
+                    # Format the creation time for display
+                    display_time = format_timestamp(local_created_time)
+                    
+                    # FIXED: Success message with clickable link
                     st.markdown(f"""
                     <div class="success-box">
                         <h3 style="margin:0 0 1rem 0;">✅ Link Created Successfully!</h3>
                         <div class="url-container">
-                            <div class="short-url">🔗 {short_url}</div>
-                            <div class="original-url">📎 {url[:100]}{'...' if len(url) > 100 else ''}</div>
+                            <div class="short-url">
+                                <a href="{short_url}" target="_blank">🔗 {short_url}</a>
+                                <span class="copy-btn" onclick="navigator.clipboard.writeText('{short_url}')">Copy</span>
+                            </div>
+                            <div class="original-url">📎 Original: {url[:100]}{'...' if len(url) > 100 else ''}</div>
                         </div>
-                        <p style="margin:0.5rem 0 0 0;">
-                            <strong>Short Code:</strong> {short_code}<br>
-                            <strong>Created:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M')}<br>
-                            <strong>Expires:</strong> {expires_in if expires_in != 'Never' else 'Never'}
-                        </p>
+                        <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                            <div>
+                                <strong>Short Code:</strong> <code>{short_code}</code><br>
+                                <strong>Created:</strong> {display_time}<br>
+                                <strong>Expires:</strong> {expires_in if expires_in != 'Never' else 'Never'}
+                            </div>
+                            <div style="text-align: right;">
+                                <strong>Total Clicks:</strong> 0<br>
+                                <strong>Status:</strong> <span style="color: #059669;">Active</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; text-align: center;">
+                            <p style="color: #065f46;">✨ Click the link above to test it or copy it to share!</p>
+                        </div>
                     </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Add JavaScript for copy functionality
+                    st.markdown("""
+                    <script>
+                    function copyToClipboard(text) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            alert('Link copied to clipboard!');
+                        }, function(err) {
+                            console.error('Could not copy text: ', err);
+                        });
+                    }
+                    </script>
                     """, unsafe_allow_html=True)
                     
                     st.balloons()
@@ -547,13 +660,17 @@ with tab2:
         link = c.fetchone()
         
         if link:
+            # Format creation time for display
+            created_display = format_timestamp(link[4]) if link[4] else "Unknown"
+            
             # Link info card
             st.markdown(f"""
             <div class="professional-card">
                 <h4 style="margin:0 0 1rem 0;">Link Information</h4>
                 <p><strong>Short Code:</strong> {short_code}</p>
+                <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">{APP_URL}/?go={short_code}</a></p>
                 <p><strong>Original URL:</strong> <a href="{link[1]}" target="_blank">{link[1][:100]}</a></p>
-                <p><strong>Created:</strong> {link[4]}</p>
+                <p><strong>Created:</strong> {created_display}</p>
                 <p><strong>Total Clicks:</strong> {link[3]}</p>
             </div>
             """, unsafe_allow_html=True)
@@ -566,7 +683,7 @@ with tab2:
             )
             
             # Calculate date filter
-            now = datetime.now()
+            now = datetime.utcnow()
             if time_range == "Last 24 Hours":
                 start_date = (now - timedelta(days=1)).isoformat()
             elif time_range == "Last 7 Days":
@@ -596,6 +713,9 @@ with tab2:
                     'browser', 'browser_version', 'os', 'os_version', 'referrer', 
                     'user_agent', 'session_id', 'is_unique'
                 ])
+                
+                # Format timestamps for display
+                df['display_time'] = df['timestamp'].apply(format_timestamp)
                 
                 # Summary metrics
                 col1, col2, col3, col4 = st.columns(4)
@@ -677,13 +797,16 @@ with tab2:
                         st.markdown("##### Click Locations Map")
                         st.map(map_df[['latitude', 'longitude']])
                 
-                # Detailed data
+                # Detailed data with formatted timestamps
                 st.markdown("##### Recent Clicks")
-                display_df = df[['timestamp', 'country', 'city', 'device_type', 'browser', 'os']].head(50)
+                display_df = df[['display_time', 'country', 'city', 'device_type', 'browser', 'os']].head(50)
+                display_df = display_df.rename(columns={'display_time': 'Time'})
                 st.dataframe(display_df, use_container_width=True)
                 
                 # Export
-                csv = df.to_csv(index=False)
+                export_df = df.copy()
+                export_df['local_time'] = export_df['timestamp'].apply(format_timestamp)
+                csv = export_df.to_csv(index=False)
                 st.download_button(
                     "📥 Export Data to CSV",
                     csv,
@@ -713,23 +836,30 @@ with tab3:
         for click in recent:
             timestamp, code, country, city, device, browser, os = click
             
-            # Format time
+            # Format time for display
+            display_time = format_timestamp(timestamp)
+            
+            # Calculate time ago
             try:
-                click_time = datetime.fromisoformat(timestamp)
-                time_ago = (datetime.now() - click_time).total_seconds()
-                if time_ago < 60:
-                    time_str = f"{int(time_ago)} seconds ago"
-                elif time_ago < 3600:
-                    time_str = f"{int(time_ago/60)} minutes ago"
+                click_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                now = datetime.now()
+                time_diff = now - click_time
+                
+                if time_diff.total_seconds() < 60:
+                    time_str = f"{int(time_diff.total_seconds())} seconds ago"
+                elif time_diff.total_seconds() < 3600:
+                    time_str = f"{int(time_diff.total_seconds()/60)} minutes ago"
+                elif time_diff.total_seconds() < 86400:
+                    time_str = f"{int(time_diff.total_seconds()/3600)} hours ago"
                 else:
-                    time_str = click_time.strftime("%H:%M:%S")
+                    time_str = f"{int(time_diff.total_seconds()/86400)} days ago"
             except:
-                time_str = timestamp
+                time_str = display_time
             
             st.markdown(f"""
             <div class="click-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span><strong>🔗 {code}</strong></span>
+                    <span><strong>🔗 <a href="{APP_URL}/?go={code}" target="_blank" style="color: #2563eb;">{code}</a></strong></span>
                     <span style="color: #64748b; font-size: 0.875rem;">{time_str}</span>
                 </div>
                 <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
@@ -793,7 +923,7 @@ if short_code:
                         break
             
             if not ip_address:
-                # Use a default for testing (in production, this would be handled differently)
+                # Use a default for testing
                 ip_address = '8.8.8.8'
                 print(f"Using default IP: {ip_address}")
             
@@ -805,6 +935,9 @@ if short_code:
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             ua_info = parse_user_agent_accurate(user_agent_string)
             print(f"UA info: {ua_info}")
+            
+            # Get local time for click timestamp
+            click_time = get_local_time()
             
             # Generate session ID for unique visitor tracking
             session_id = hashlib.md5(
@@ -839,7 +972,7 @@ if short_code:
                 """, (
                     link_id,
                     short_code,
-                    datetime.now().isoformat(),
+                    click_time,  # Use local time
                     geo_data['ip'],
                     geo_data['country'],
                     geo_data['city'],

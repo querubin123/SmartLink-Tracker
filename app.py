@@ -32,10 +32,10 @@ APP_NAME = "LinkMetrics Pro"
 APP_DOMAIN = "linkmetrics.pro"  # This is your brand domain
 APP_URL = "https://smartlink-tracker.streamlit.app"  # Your actual Streamlit URL
 
-# Custom CSS for professional UI
+# Custom CSS for professional UI - UPDATED for better text visibility
 st.markdown("""
 <style>
-    /* Professional color scheme */
+    /* Professional color scheme with better contrast */
     :root {
         --primary: #2563eb;
         --primary-dark: #1d4ed8;
@@ -44,7 +44,13 @@ st.markdown("""
         --warning: #d97706;
         --danger: #dc2626;
         --dark: #1f2937;
-        --light: #f3f4f6;
+        --light: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
     }
     
     /* Main header */
@@ -56,6 +62,15 @@ st.markdown("""
         color: white;
         box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     }
+    .professional-header h1 {
+        color: white !important;
+        font-weight: 700;
+        margin: 0;
+    }
+    .professional-header p {
+        color: rgba(255,255,255,0.95) !important;
+        font-weight: 400;
+    }
     
     /* Domain badge */
     .domain-badge {
@@ -66,36 +81,62 @@ st.markdown("""
         font-size: 1.1rem;
         margin-top: 1rem;
         backdrop-filter: blur(10px);
+        color: white !important;
+        font-weight: 500;
     }
     
-    /* Card styling */
+    /* Card styling - improved text contrast */
     .professional-card {
         background: white;
         padding: 1.5rem;
         border-radius: 0.75rem;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         margin: 1rem 0;
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--gray-200);
         transition: all 0.3s ease;
     }
     .professional-card:hover {
         box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         transform: translateY(-2px);
     }
+    .professional-card h4 {
+        color: var(--gray-800) !important;
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+    .professional-card p {
+        color: var(--gray-700) !important;
+        margin: 0.5rem 0;
+    }
+    .professional-card strong {
+        color: var(--gray-900) !important;
+        font-weight: 600;
+    }
+    .professional-card a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    .professional-card a:hover {
+        text-decoration: underline;
+    }
     
-    /* URL display - FIXED for clickable links */
+    /* URL display - improved visibility */
     .url-container {
-        background: #f8fafc;
+        background: var(--gray-100);
         padding: 1.2rem;
         border-radius: 0.5rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--gray-200);
         margin: 1rem 0;
     }
     .short-url {
-        color: var(--primary);
         font-size: 1.25rem;
         font-weight: 600;
         word-break: break-all;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
     .short-url a {
         color: var(--primary);
@@ -105,16 +146,17 @@ st.markdown("""
         border-radius: 0.3rem;
         display: inline-block;
         transition: all 0.2s ease;
+        font-weight: 500;
     }
     .short-url a:hover {
         background: var(--primary);
-        color: white;
+        color: white !important;
         text-decoration: none;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
     }
     .original-url {
-        color: #64748b;
+        color: var(--gray-600) !important;
         font-size: 0.875rem;
         word-break: break-all;
         margin-top: 0.5rem;
@@ -129,33 +171,35 @@ st.markdown("""
         border-radius: 0.3rem;
         cursor: pointer;
         font-size: 0.875rem;
-        margin-left: 0.5rem;
         transition: all 0.2s ease;
+        font-weight: 500;
     }
     .copy-btn:hover {
         background: var(--primary);
         color: white;
     }
     
-    /* Metric cards */
+    /* Metric cards - improved text contrast */
     .metric-card {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        background: white;
         padding: 1.5rem;
         border-radius: 0.75rem;
         text-align: center;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .metric-value {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--primary);
+        color: var(--primary) !important;
         line-height: 1.2;
     }
     .metric-label {
-        color: #64748b;
+        color: var(--gray-600) !important;
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        font-weight: 500;
     }
     
     /* Stats grid */
@@ -166,15 +210,29 @@ st.markdown("""
         margin: 1.5rem 0;
     }
     
-    /* Click card for live feed */
+    /* Click card for live feed - improved contrast */
     .click-card {
         background: white;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 0.5rem 0;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--gray-200);
         border-left: 4px solid var(--primary);
         animation: slideIn 0.3s ease;
+    }
+    .click-card span {
+        color: var(--gray-700) !important;
+    }
+    .click-card strong {
+        color: var(--gray-800) !important;
+    }
+    .click-card a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .click-card a:hover {
+        text-decoration: underline;
     }
     
     @keyframes slideIn {
@@ -210,15 +268,16 @@ st.markdown("""
         background: white;
         padding: 0.5rem;
         border-radius: 0.5rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--gray-200);
     }
     .stTabs [data-baseweb="tab"] {
         padding: 0.5rem 1.5rem;
         font-weight: 500;
-        color: #64748b;
+        color: var(--gray-600) !important;
     }
     .stTabs [aria-selected="true"] {
         color: var(--primary) !important;
+        font-weight: 600;
     }
     
     /* Info boxes */
@@ -227,25 +286,127 @@ st.markdown("""
         padding: 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid var(--primary);
-        color: #1e40af;
+        color: var(--gray-800) !important;
+    }
+    .info-box p {
+        color: var(--gray-700) !important;
     }
     
-    /* Success message - FIXED with better styling */
+    /* Success message - improved contrast */
     .success-box {
-        background: #ecfdf5;
+        background: #f0fdf4;
         padding: 1.5rem;
         border-radius: 0.5rem;
-        border: 1px solid #a7f3d0;
-        color: #065f46;
+        border: 1px solid #bbf7d0;
         margin: 1rem 0;
+    }
+    .success-box h3 {
+        color: var(--success) !important;
+        font-weight: 600;
+        margin-top: 0;
+    }
+    .success-box p {
+        color: var(--gray-700) !important;
+    }
+    .success-box strong {
+        color: var(--gray-800) !important;
+    }
+    .success-box code {
+        background: #dcfce7;
+        color: var(--success) !important;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
     }
     
     /* Timestamp styling */
     .timestamp {
-        color: #64748b;
+        color: var(--gray-500) !important;
         font-size: 0.8rem;
         font-family: monospace;
         margin-top: 0.5rem;
+    }
+    
+    /* DataFrame styling - improved visibility */
+    .stDataFrame {
+        color: var(--gray-800) !important;
+    }
+    .stDataFrame td {
+        color: var(--gray-700) !important;
+    }
+    .stDataFrame th {
+        color: var(--gray-800) !important;
+        font-weight: 600;
+        background: var(--gray-100);
+    }
+    
+    /* Text color overrides for Streamlit default elements */
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: var(--gray-800) !important;
+    }
+    .stMarkdown p {
+        color: var(--gray-700) !important;
+    }
+    .stMarkdown li {
+        color: var(--gray-700) !important;
+    }
+    
+    /* Selectbox and input styling */
+    .stSelectbox label, .stTextInput label {
+        color: var(--gray-700) !important;
+        font-weight: 500;
+    }
+    .stSelectbox div[data-baseweb="select"] span {
+        color: var(--gray-800) !important;
+    }
+    
+    /* Radio button styling */
+    .stRadio label {
+        color: var(--gray-700) !important;
+    }
+    .stRadio div[role="radiogroup"] {
+        color: var(--gray-800) !important;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        color: var(--gray-700) !important;
+        font-weight: 500;
+        background: var(--gray-100);
+        border-radius: 0.375rem;
+    }
+    .streamlit-expanderContent {
+        color: var(--gray-700) !important;
+    }
+    
+    /* Metric delta colors */
+    [data-testid="stMetricValue"] {
+        color: var(--gray-800) !important;
+        font-weight: 600;
+    }
+    [data-testid="stMetricLabel"] {
+        color: var(--gray-600) !important;
+        font-weight: 500;
+    }
+    
+    /* Download button styling */
+    .stDownloadButton > button {
+        background: white !important;
+        color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        font-weight: 500 !important;
+    }
+    .stDownloadButton > button:hover {
+        background: var(--primary) !important;
+        color: white !important;
+    }
+    
+    /* Warning/Error/Info messages */
+    .stAlert {
+        color: var(--gray-800) !important;
+    }
+    .stAlert p {
+        color: var(--gray-800) !important;
     }
 </style>
 """, unsafe_allow_html=True)

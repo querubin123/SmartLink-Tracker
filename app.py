@@ -662,9 +662,6 @@ except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()
 
-# ============================================================================
-# FIXED: Accurate IP and Geolocation Functions
-# ============================================================================
 
 def get_real_client_ip():
     """

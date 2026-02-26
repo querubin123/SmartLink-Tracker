@@ -18,6 +18,7 @@ import hashlib
 import urllib.parse
 import pytz
 from tzlocal import get_localzone
+import socket
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -32,7 +33,7 @@ APP_NAME = "LinkMetrics Pro"
 APP_DOMAIN = "linkmetrics.pro"  # This is your brand domain
 APP_URL = "https://smartlink-tracker.streamlit.app"  # Your actual Streamlit URL
 
-# Custom CSS for professional UI - UPDATED for better text visibility
+# Custom CSS for professional UI
 st.markdown("""
 <style>
     /* Professional color scheme with better contrast */
@@ -479,43 +480,226 @@ except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()
 
-# Function to get local time
-def get_local_time():
-    """Get current time in local timezone"""
-    try:
-        # Try to get local timezone
-        local_tz = get_localzone()
-        local_time = datetime.now(local_tz)
-        return local_time.isoformat()
-    except:
-        # Fallback to UTC if tzlocal fails
-        return datetime.utcnow().isoformat()
+# ============================================================================
+# FIXED: Accurate IP and Geolocation Functions
+# ============================================================================
 
-# Function to format timestamp for display
+def get_real_client_ip():
+    """
+    Get the real client IP address from various headers
+    This is crucial for accurate geolocation
+    """
+    # List of headers to check in order of preference
+    headers_to_check = [
+        'X-Forwarded-For',
+        'X-Real-IP',
+        'CF-Connecting-IP',  # Cloudflare
+        'True-Client-IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_REAL_IP',
+        'HTTP_CF_CONNECTING_IP',
+        'REMOTE_ADDR'
+    ]
+    
+    # Check each header in st.query_params
+    for header in headers_to_check:
+        if header in st.query_params:
+            ip_value = st.query_params[header]
+            # X-Forwarded-For can contain multiple IPs, take the first one
+            if ',' in ip_value:
+                ip_value = ip_value.split(',')[0].strip()
+            # Validate it looks like an IP
+            if ip_value and ip_value != '127.0.0.1' and ip_value != '::1':
+                print(f"Found real IP from {header}: {ip_value}")
+                return ip_value
+    
+    # If no headers found, try to get from request context
+    try:
+        # On Streamlit Cloud, try to get from environment
+        host = os.environ.get('REMOTE_ADDR', '')
+        if host and host != '127.0.0.1':
+            return host
+    except:
+        pass
+    
+    # Last resort - make a request to a service that echoes the IP
+    try:
+        response = requests.get('https://api.ipify.org', timeout=3)
+        if response.status_code == 200:
+            external_ip = response.text.strip()
+            print(f"Got external IP from ipify: {external_ip}")
+            return external_ip
+    except:
+        pass
+    
+    # If all else fails, return a default (this will be overwritten by geolocation fallback)
+    print("Could not determine real IP, using default")
+    return None
+
+def get_accurate_geo_info():
+    """
+    Get accurate geolocation data for the real client IP
+    Uses multiple APIs with fallbacks
+    """
+    
+    # First, get the real client IP
+    client_ip = get_real_client_ip()
+    
+    geo_data = {
+        'country': 'Unknown',
+        'city': 'Unknown',
+        'region': 'Unknown',
+        'latitude': 0.0,
+        'longitude': 0.0,
+        'isp': 'Unknown',
+        'ip': client_ip if client_ip else 'Unknown'
+    }
+    
+    if not client_ip:
+        print("No client IP available for geolocation")
+        return geo_data
+    
+    print(f"Attempting geolocation for IP: {client_ip}")
+    
+    # PRIMARY API: ip-api.com (fast, free, no API key needed)
+    # This is very accurate and includes city-level data
+    try:
+        response = requests.get(
+            f'http://ip-api.com/json/{client_ip}?fields=status,country,city,regionName,lat,lon,isp,query',
+            timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('status') == 'success':
+                geo_data.update({
+                    'country': data.get('country', 'Unknown'),
+                    'city': data.get('city', 'Unknown'),
+                    'region': data.get('regionName', 'Unknown'),
+                    'latitude': data.get('lat', 0.0),
+                    'longitude': data.get('lon', 0.0),
+                    'isp': data.get('isp', 'Unknown'),
+                    'ip': data.get('query', client_ip)
+                })
+                print(f"ip-api.com success: {geo_data['country']}, {geo_data['city']}")
+                return geo_data
+    except Exception as e:
+        print(f"ip-api.com failed: {e}")
+    
+    # SECONDARY API: ipapi.co (free tier, requires no API key for basic usage)
+    try:
+        response = requests.get(f'https://ipapi.co/{client_ip}/json/', timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('error') is None:
+                geo_data.update({
+                    'country': data.get('country_name', 'Unknown'),
+                    'city': data.get('city', 'Unknown'),
+                    'region': data.get('region', 'Unknown'),
+                    'latitude': data.get('latitude', 0.0),
+                    'longitude': data.get('longitude', 0.0),
+                    'isp': data.get('org', 'Unknown'),
+                    'ip': client_ip
+                })
+                print(f"ipapi.co success: {geo_data['country']}, {geo_data['city']}")
+                return geo_data
+    except Exception as e:
+        print(f"ipapi.co failed: {e}")
+    
+    # TERTIARY API: ipinfo.io (free tier with token, but we'll try without)
+    try:
+        response = requests.get(f'https://ipinfo.io/{client_ip}/json', timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('country'):
+                geo_data.update({
+                    'country': data.get('country', 'Unknown'),
+                    'city': data.get('city', 'Unknown'),
+                    'region': data.get('region', 'Unknown'),
+                    'latitude': float(data.get('loc', '0,0').split(',')[0]) if data.get('loc') else 0.0,
+                    'longitude': float(data.get('loc', '0,0').split(',')[1]) if data.get('loc') else 0.0,
+                    'isp': data.get('org', 'Unknown'),
+                    'ip': client_ip
+                })
+                print(f"ipinfo.io success: {geo_data['country']}, {geo_data['city']}")
+                return geo_data
+    except Exception as e:
+        print(f"ipinfo.io failed: {e}")
+    
+    print(f"All geolocation APIs failed for IP: {client_ip}")
+    return geo_data
+
+# ============================================================================
+# FIXED: Accurate Time Functions
+# ============================================================================
+
+def get_local_time():
+    """
+    Get current time in local timezone with proper timezone handling
+    """
+    try:
+        # Get local timezone
+        local_tz = get_localzone()
+        # Get current time in local timezone
+        local_time = datetime.now(local_tz)
+        # Return ISO format with timezone info
+        return local_time.isoformat()
+    except Exception as e:
+        print(f"Local timezone detection failed: {e}")
+        # Fallback to UTC
+        return datetime.now(timezone.utc).isoformat()
+
 def format_timestamp(iso_timestamp):
-    """Convert ISO timestamp to local time for display"""
+    """
+    Convert ISO timestamp to local time for display with proper formatting
+    """
     try:
         if not iso_timestamp:
             return "Unknown"
         
-        # Parse the timestamp
-        if 'Z' in iso_timestamp:
+        # Handle Z suffix (UTC)
+        if iso_timestamp.endswith('Z'):
             iso_timestamp = iso_timestamp.replace('Z', '+00:00')
         
+        # Parse the timestamp
         dt = datetime.fromisoformat(iso_timestamp)
         
         # Convert to local timezone
         try:
             local_tz = get_localzone()
+            # If timestamp has no timezone, assume UTC
             if dt.tzinfo is None:
-                # Assume UTC if no timezone
                 dt = dt.replace(tzinfo=timezone.utc)
+            # Convert to local timezone
             local_dt = dt.astimezone(local_tz)
+            # Format with timezone abbreviation
             return local_dt.strftime('%Y-%m-%d %H:%M:%S %Z')
-        except:
+        except Exception as e:
+            print(f"Timezone conversion failed: {e}")
+            # Fallback to simple formatting
             return dt.strftime('%Y-%m-%d %H:%M:%S')
-    except:
+    except Exception as e:
+        print(f"Timestamp parsing failed: {e}")
         return iso_timestamp
+
+# Parse user agent accurately
+def parse_user_agent_accurate(user_agent_string):
+    try:
+        ua = parse(user_agent_string)
+        return {
+            'device_type': 'Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else 'Desktop',
+            'browser': ua.browser.family if ua.browser.family else 'Unknown',
+            'browser_version': ua.browser.version_string if ua.browser.version_string else 'Unknown',
+            'os': ua.os.family if ua.os.family else 'Unknown',
+            'os_version': ua.os.version_string if ua.os.version_string else 'Unknown'
+        }
+    except:
+        return {
+            'device_type': 'Unknown',
+            'browser': 'Unknown',
+            'browser_version': 'Unknown',
+            'os': 'Unknown',
+            'os_version': 'Unknown'
+        }
 
 # Professional header
 st.markdown(f"""
@@ -540,83 +724,6 @@ def validate_url(url):
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
     return url
-
-# Enhanced IP geolocation with multiple fallbacks
-def get_accurate_geo_info(ip_address=None):
-    """Get accurate geolocation data with multiple API fallbacks"""
-    
-    if not ip_address or ip_address == '127.0.0.1' or ip_address == '::1':
-        # Use a public IP for testing (in production, this would be the real IP)
-        ip_address = '8.8.8.8'  # Google DNS for testing
-    
-    geo_data = {
-        'country': 'Unknown',
-        'city': 'Unknown',
-        'region': 'Unknown',
-        'latitude': 0.0,
-        'longitude': 0.0,
-        'isp': 'Unknown',
-        'ip': ip_address
-    }
-    
-    # Try ip-api.com (fast, free, no API key needed)
-    try:
-        response = requests.get(f'http://ip-api.com/json/{ip_address}?fields=status,country,city,regionName,lat,lon,isp,query', timeout=3)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('status') == 'success':
-                geo_data.update({
-                    'country': data.get('country', 'Unknown'),
-                    'city': data.get('city', 'Unknown'),
-                    'region': data.get('regionName', 'Unknown'),
-                    'latitude': data.get('lat', 0.0),
-                    'longitude': data.get('lon', 0.0),
-                    'isp': data.get('isp', 'Unknown'),
-                    'ip': data.get('query', ip_address)
-                })
-                return geo_data
-    except Exception as e:
-        print(f"ip-api.com failed: {e}")
-    
-    # Try ipapi.co (free tier)
-    try:
-        response = requests.get(f'https://ipapi.co/{ip_address}/json/', timeout=3)
-        if response.status_code == 200:
-            data = response.json()
-            geo_data.update({
-                'country': data.get('country_name', 'Unknown'),
-                'city': data.get('city', 'Unknown'),
-                'region': data.get('region', 'Unknown'),
-                'latitude': data.get('latitude', 0.0),
-                'longitude': data.get('longitude', 0.0),
-                'isp': data.get('org', 'Unknown'),
-                'ip': ip_address
-            })
-            return geo_data
-    except Exception as e:
-        print(f"ipapi.co failed: {e}")
-    
-    return geo_data
-
-# Parse user agent accurately
-def parse_user_agent_accurate(user_agent_string):
-    try:
-        ua = parse(user_agent_string)
-        return {
-            'device_type': 'Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else 'Desktop',
-            'browser': ua.browser.family if ua.browser.family else 'Unknown',
-            'browser_version': ua.browser.version_string if ua.browser.version_string else 'Unknown',
-            'os': ua.os.family if ua.os.family else 'Unknown',
-            'os_version': ua.os.version_string if ua.os.version_string else 'Unknown'
-        }
-    except:
-        return {
-            'device_type': 'Unknown',
-            'browser': 'Unknown',
-            'browser_version': 'Unknown',
-            'os': 'Unknown',
-            'os_version': 'Unknown'
-        }
 
 # Tabs
 tab1, tab2, tab3 = st.tabs(["🔗 Create Short Link", "📊 Analytics", "🔄 Live Feed"])
@@ -699,7 +806,7 @@ with tab1:
                 expires_at = None
                 if expires_in != "Never":
                     days = int(expires_in.split()[0])
-                    expires_at = (datetime.utcnow() + timedelta(days=days)).isoformat()
+                    expires_at = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
                 
                 # Get local time for creation
                 local_created_time = get_local_time()
@@ -720,7 +827,7 @@ with tab1:
                     # Format the creation time for display
                     display_time = format_timestamp(local_created_time)
                     
-                    # FIXED: Success message with clickable link
+                    # Success message with clickable link
                     st.markdown(f"""
                     <div class="success-box">
                         <h3 style="margin:0 0 1rem 0;">✅ Link Created Successfully!</h3>
@@ -844,7 +951,7 @@ with tab2:
             )
             
             # Calculate date filter
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             if time_range == "Last 24 Hours":
                 start_date = (now - timedelta(days=1)).isoformat()
             elif time_range == "Last 7 Days":
@@ -1065,32 +1172,11 @@ if short_code:
             original_url = result[0]
             print(f"Found URL: {original_url}")
             
-            # Get visitor IP
-            # Try to get real IP from headers
-            ip_address = None
-            headers_to_check = [
-                'X-Forwarded-For',
-                'X-Real-IP',
-                'CF-Connecting-IP',
-                'True-Client-IP'
-            ]
-            
-            for header in headers_to_check:
-                if header in st.query_params:
-                    ip_candidate = st.query_params[header].split(',')[0].strip()
-                    if ip_candidate and ip_candidate != '127.0.0.1':
-                        ip_address = ip_candidate
-                        print(f"Found IP from header {header}: {ip_address}")
-                        break
-            
-            if not ip_address:
-                # Use a default for testing
-                ip_address = '8.8.8.8'
-                print(f"Using default IP: {ip_address}")
-            
-            # Get accurate geolocation
-            geo_data = get_accurate_geo_info(ip_address)
-            print(f"Geo data: {geo_data}")
+            # ================================================================
+            # FIXED: Get accurate geolocation using real client IP
+            # ================================================================
+            geo_data = get_accurate_geo_info()
+            print(f"Final geo data: {geo_data}")
             
             # Parse user agent
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
@@ -1156,6 +1242,7 @@ if short_code:
                 c.execute("UPDATE links SET clicks = clicks + 1 WHERE short_code=?", (short_code,))
                 conn.commit()
                 print(f"Click recorded successfully for {short_code}")
+                print(f"Location: {geo_data['country']}, {geo_data['city']}")
                 
             except Exception as e:
                 print(f"Error recording click: {e}")

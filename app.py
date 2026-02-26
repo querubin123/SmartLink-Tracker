@@ -82,36 +82,53 @@ with tab1:
                     if utm_params:
                         original_url = f"{original_url}{separator}{'&'.join(utm_params)}"
                 
-                link_id = custom_id if custom_id else base64.urlsafe_b64encode(os.urandom(3)).decode().rstrip('=')
+                # Generate link ID
+                if custom_id:
+                    link_id = custom_id
+                else:
+                    link_id = base64.urlsafe_b64encode(os.urandom(3)).decode().rstrip('=')
                 
                 # Create cursor and execute query
                 c = conn.cursor()
                 try:
-                    c.execute("INSERT INTO links VALUES (?,?,0,?,?)", 
-                             (link_id, original_url, datetime.now().isoformat(), custom_id or ''))
+                    # FIXED: Explicit INSERT with proper NULL handling
+                    custom_id_value = custom_id if custom_id else None
+                    
+                    c.execute("""
+                        INSERT INTO links (id, original_url, clicks, created_date, custom_id) 
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (link_id, original_url, 0, datetime.now().isoformat(), custom_id_value))
                     conn.commit()
                     
                     # Get the app URL
-                    app_url = "https://smartlink-tracker.streamlit.app/"  # Replace with your actual app URL
-                    short_url = f"{app_url}/?id={link_id}"
+                    if os.getenv('STREAMLIT_SERVER_ADDRESS'):
+                        base_url = f"https://{os.getenv('STREAMLIT_SERVER_ADDRESS', '').split(':')[0]}"
+                    else:
+                        base_url = "http://localhost:8501"
+                    
+                    short_url = f"{base_url}/?id={link_id}"
                     
                     st.success("✅ Link created successfully!")
                     
                     # Display link in a nice box
-                    st.markdown("""
+                    st.markdown(f"""
                     <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 10px 0;">
                         <h4 style="margin:0">Your Tracking Link:</h4>
                         <p style="font-size: 18px; margin:10px 0">
-                            <a href='{}' target='_blank'>{}</a>
+                            <a href='{short_url}' target='_blank'>{short_url}</a>
                         </p>
-                        <p style="color: #666; margin:5px 0">ID: <code>{}</code></p>
+                        <p style="color: #666; margin:5px 0">ID: <code>{link_id}</code></p>
                     </div>
-                    """.format(short_url, short_url, link_id), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
                     
                     st.balloons()
                     
-                except sqlite3.IntegrityError:
-                    st.error("❌ This custom ID is already taken. Please choose another one.")
+                except sqlite3.IntegrityError as e:
+                    st.error(f"❌ This custom ID is already taken. Please choose another one.")
+                    print(f"Database error: {e}")  # This will show in logs
+                except Exception as e:
+                    st.error(f"❌ An error occurred: {str(e)}")
+                    print(f"Error: {e}")  # This will show in logs
             else:
                 st.error("❌ Please enter a URL")
 

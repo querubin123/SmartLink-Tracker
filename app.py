@@ -15,6 +15,7 @@ import json
 import random
 import string
 import hashlib
+import urllib.parse
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -26,8 +27,8 @@ st.set_page_config(
 
 # Professional branding
 APP_NAME = "LinkMetrics Pro"
-APP_DOMAIN = "linkmetrics.pro"  # Change this to your actual domain when deployed
-APP_URL = "https://smartlink-tracker.streamlit.app"  # Keep your actual Streamlit URL
+APP_DOMAIN = "linkmetrics.pro"  # This is your brand domain
+APP_URL = "https://smartlink-tracker.streamlit.app"  # Your actual Streamlit URL
 
 # Custom CSS for professional UI
 st.markdown("""
@@ -291,36 +292,20 @@ def generate_short_code(length=6):
 
 # Function to validate URL
 def validate_url(url):
+    if not url:
+        return url
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
     return url
 
-# Function to get accurate visitor info
-def get_visitor_info_accurate():
-    """Get accurate visitor information with multiple fallbacks"""
+# Enhanced IP geolocation with multiple fallbacks
+def get_accurate_geo_info(ip_address=None):
+    """Get accurate geolocation data with multiple API fallbacks"""
     
-    # Try to get real IP
-    ip_address = '8.8.8.8'  # Default to Google DNS for testing
+    if not ip_address or ip_address == '127.0.0.1' or ip_address == '::1':
+        # Use a public IP for testing (in production, this would be the real IP)
+        ip_address = '8.8.8.8'  # Google DNS for testing
     
-    # Check multiple header sources
-    headers_to_check = [
-        'X-Forwarded-For',
-        'X-Real-IP',
-        'CF-Connecting-IP',
-        'True-Client-IP',
-        'HTTP_X_FORWARDED_FOR',
-        'HTTP_X_REAL_IP',
-        'HTTP_CF_CONNECTING_IP'
-    ]
-    
-    for header in headers_to_check:
-        if header in st.query_params:
-            ip_candidate = st.query_params[header].split(',')[0].strip()
-            if ip_candidate and ip_candidate != '127.0.0.1':
-                ip_address = ip_candidate
-                break
-    
-    # Try multiple geolocation APIs
     geo_data = {
         'country': 'Unknown',
         'city': 'Unknown',
@@ -331,7 +316,7 @@ def get_visitor_info_accurate():
         'ip': ip_address
     }
     
-    # Primary API: ip-api.com (fast, free)
+    # Try ip-api.com (fast, free, no API key needed)
     try:
         response = requests.get(f'http://ip-api.com/json/{ip_address}?fields=status,country,city,regionName,lat,lon,isp,query', timeout=3)
         if response.status_code == 200:
@@ -347,10 +332,10 @@ def get_visitor_info_accurate():
                     'ip': data.get('query', ip_address)
                 })
                 return geo_data
-    except:
-        pass
+    except Exception as e:
+        print(f"ip-api.com failed: {e}")
     
-    # Secondary API: ipapi.co
+    # Try ipapi.co (free tier)
     try:
         response = requests.get(f'https://ipapi.co/{ip_address}/json/', timeout=3)
         if response.status_code == 200:
@@ -365,13 +350,13 @@ def get_visitor_info_accurate():
                 'ip': ip_address
             })
             return geo_data
-    except:
-        pass
+    except Exception as e:
+        print(f"ipapi.co failed: {e}")
     
     return geo_data
 
-# Function to parse user agent accurately
-def parse_user_agent(user_agent_string):
+# Parse user agent accurately
+def parse_user_agent_accurate(user_agent_string):
     try:
         ua = parse(user_agent_string)
         return {
@@ -484,7 +469,7 @@ with tab1:
                           utm_source, utm_medium, utm_campaign))
                     conn.commit()
                     
-                    short_url = f"https://{APP_DOMAIN}/{short_code}"
+                    short_url = f"{APP_URL}/?go={short_code}"
                     
                     # Success message
                     st.markdown(f"""
@@ -685,6 +670,13 @@ with tab2:
                     fig.update_layout(height=300)
                     st.plotly_chart(fig, use_container_width=True)
                 
+                # Map if coordinates available
+                if 'latitude' in df.columns and 'longitude' in df.columns:
+                    map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
+                    if not map_df.empty:
+                        st.markdown("##### Click Locations Map")
+                        st.map(map_df[['latitude', 'longitude']])
+                
                 # Detailed data
                 st.markdown("##### Recent Clicks")
                 display_df = df[['timestamp', 'country', 'city', 'device_type', 'browser', 'os']].head(50)
@@ -753,33 +745,71 @@ with tab3:
     else:
         st.info("No clicks recorded yet. Share your links to start tracking!")
 
+# ============================================================================
 # REDIRECT HANDLER - This runs when someone clicks a short link
-if len(st.query_params) == 0 and st.experimental_get_query_params().get('id') is None:
-    # Check if the path might be a short code
-    path = st.experimental_get_query_params().get('path', [''])[0]
-    if path and path != '':
-        short_code = path
-    else:
-        short_code = None
-else:
-    # Check for 'id' parameter (old format)
-    short_code = st.query_params.get('id', None)
+# ============================================================================
+# Check for short code in query parameters
+short_code = None
 
+# Check for 'go' parameter (our new format)
+if 'go' in st.query_params:
+    short_code = st.query_params['go']
+    print(f"Redirect: Found go parameter: {short_code}")
+
+# Check for 'id' parameter (old format for backward compatibility)
+elif 'id' in st.query_params:
+    short_code = st.query_params['id']
+    print(f"Redirect: Found id parameter: {short_code}")
+
+# If we have a short code, process the redirect
 if short_code:
+    print(f"Processing redirect for code: {short_code}")
+    
     try:
-        # Get original URL
-        c.execute("SELECT original_url FROM links WHERE short_code=?", (short_code,))
+        # Get the original URL from database
+        c.execute("SELECT original_url, clicks FROM links WHERE short_code=?", (short_code,))
         result = c.fetchone()
         
         if result:
             original_url = result[0]
+            print(f"Found URL: {original_url}")
             
-            # Get visitor info
-            visitor = get_visitor_info_accurate()
-            ua_info = parse_user_agent(st.query_params.get('user_agent', 'Unknown'))
+            # Get visitor IP
+            # Try to get real IP from headers
+            ip_address = None
+            headers_to_check = [
+                'X-Forwarded-For',
+                'X-Real-IP',
+                'CF-Connecting-IP',
+                'True-Client-IP'
+            ]
             
-            # Generate session ID
-            session_id = hashlib.md5(f"{visitor['ip']}{short_code}{datetime.now().date()}".encode()).hexdigest()
+            for header in headers_to_check:
+                if header in st.query_params:
+                    ip_candidate = st.query_params[header].split(',')[0].strip()
+                    if ip_candidate and ip_candidate != '127.0.0.1':
+                        ip_address = ip_candidate
+                        print(f"Found IP from header {header}: {ip_address}")
+                        break
+            
+            if not ip_address:
+                # Use a default for testing (in production, this would be handled differently)
+                ip_address = '8.8.8.8'
+                print(f"Using default IP: {ip_address}")
+            
+            # Get accurate geolocation
+            geo_data = get_accurate_geo_info(ip_address)
+            print(f"Geo data: {geo_data}")
+            
+            # Parse user agent
+            user_agent_string = st.query_params.get('user_agent', 'Unknown')
+            ua_info = parse_user_agent_accurate(user_agent_string)
+            print(f"UA info: {ua_info}")
+            
+            # Generate session ID for unique visitor tracking
+            session_id = hashlib.md5(
+                f"{geo_data['ip']}{short_code}{datetime.now().strftime('%Y-%m-%d')}".encode()
+            ).hexdigest()
             
             # Check if this is a unique click today
             c.execute("""
@@ -788,46 +818,62 @@ if short_code:
             """, (short_code, session_id))
             
             is_unique = 0 if c.fetchone() else 1
+            print(f"Is unique: {is_unique}")
             
-            # Record click
-            c.execute("""
-                INSERT INTO clicks (
-                    link_id, short_code, timestamp, ip_address, country, city, region,
-                    latitude, longitude, isp, device_type, browser, browser_version,
-                    os, os_version, referrer, user_agent, session_id, is_unique
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                hashlib.md5(short_code.encode()).hexdigest()[:12],
-                short_code,
-                datetime.now().isoformat(),
-                visitor['ip'],
-                visitor['country'],
-                visitor['city'],
-                visitor['region'],
-                visitor['latitude'],
-                visitor['longitude'],
-                visitor['isp'],
-                ua_info['device_type'],
-                ua_info['browser'],
-                ua_info['browser_version'],
-                ua_info['os'],
-                ua_info['os_version'],
-                st.query_params.get('referrer', 'Direct'),
-                st.query_params.get('user_agent', 'Unknown'),
-                session_id,
-                1 if is_unique else 0
-            ))
+            # Get referrer
+            referrer = st.query_params.get('referrer', 'Direct')
             
-            # Update click count
-            c.execute("UPDATE links SET clicks = clicks + 1 WHERE short_code=?", (short_code,))
-            conn.commit()
+            # Get link_id
+            c.execute("SELECT id FROM links WHERE short_code=?", (short_code,))
+            link_id_result = c.fetchone()
+            link_id = link_id_result[0] if link_id_result else hashlib.md5(short_code.encode()).hexdigest()[:12]
             
-            # Professional redirect page
-            st.markdown(f"""
+            # Record the click
+            try:
+                c.execute("""
+                    INSERT INTO clicks (
+                        link_id, short_code, timestamp, ip_address, country, city, region,
+                        latitude, longitude, isp, device_type, browser, browser_version,
+                        os, os_version, referrer, user_agent, session_id, is_unique
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    link_id,
+                    short_code,
+                    datetime.now().isoformat(),
+                    geo_data['ip'],
+                    geo_data['country'],
+                    geo_data['city'],
+                    geo_data['region'],
+                    geo_data['latitude'],
+                    geo_data['longitude'],
+                    geo_data['isp'],
+                    ua_info['device_type'],
+                    ua_info['browser'],
+                    ua_info['browser_version'],
+                    ua_info['os'],
+                    ua_info['os_version'],
+                    referrer,
+                    user_agent_string,
+                    session_id,
+                    1 if is_unique else 0
+                ))
+                
+                # Update click count in links table
+                c.execute("UPDATE links SET clicks = clicks + 1 WHERE short_code=?", (short_code,))
+                conn.commit()
+                print(f"Click recorded successfully for {short_code}")
+                
+            except Exception as e:
+                print(f"Error recording click: {e}")
+                conn.rollback()
+            
+            # Create HTML redirect page with tracking info
+            html_content = f"""
             <!DOCTYPE html>
             <html>
             <head>
-                <meta http-equiv="refresh" content="3;url={original_url}">
+                <title>Redirecting to {original_url[:50]}...</title>
+                <meta http-equiv="refresh" content="2;url={original_url}">
                 <style>
                     body {{
                         margin: 0;
@@ -851,6 +897,7 @@ if short_code:
                         padding: 2rem;
                         border-radius: 1rem;
                         margin: 2rem 0;
+                        border: 1px solid rgba(255,255,255,0.2);
                     }}
                     .grid {{
                         display: grid;
@@ -877,7 +924,13 @@ if short_code:
                         100% {{ transform: rotate(360deg); }}
                     }}
                     h1 {{ font-size: 3rem; margin: 0; }}
-                    .domain {{ color: #a5f3fc; }}
+                    .url {{ 
+                        color: #a5f3fc; 
+                        word-break: break-all;
+                        font-size: 0.9rem;
+                        margin-top: 0.5rem;
+                    }}
+                    a {{ color: white; }}
                 </style>
             </head>
             <body>
@@ -889,11 +942,11 @@ if short_code:
                         <div class="grid">
                             <div class="item">
                                 <div>🌍 Country</div>
-                                <strong>{visitor['country']}</strong>
+                                <strong>{geo_data['country']}</strong>
                             </div>
                             <div class="item">
                                 <div>🏙️ City</div>
-                                <strong>{visitor['city']}</strong>
+                                <strong>{geo_data['city']}</strong>
                             </div>
                             <div class="item">
                                 <div>📱 Device</div>
@@ -904,22 +957,29 @@ if short_code:
                                 <strong>{ua_info['browser']}</strong>
                             </div>
                         </div>
-                        <p style="margin:0;"><small>ISP: {visitor['isp']}</small></p>
+                        <p style="margin:0;"><small>ISP: {geo_data['isp']}</small></p>
                     </div>
                     <div class="loader"></div>
                     <p style="font-size: 1.2rem;">Tracking your click...</p>
-                    <p>Redirecting to <span class="domain">{original_url[:50]}</span></p>
-                    <p><small>If you're not redirected, <a href="{original_url}" style="color: white;">click here</a></small></p>
+                    <p>Redirecting to:</p>
+                    <div class="url">{original_url[:100]}{'...' if len(original_url) > 100 else ''}</div>
+                    <p><small>If you're not redirected in 2 seconds, <a href="{original_url}">click here</a></small></p>
                 </div>
             </body>
             </html>
-            """, unsafe_allow_html=True)
+            """
             
+            # Display the HTML
+            st.markdown(html_content, unsafe_allow_html=True)
+            
+            # Stop further Streamlit execution
             st.stop()
-        else:
-            st.error("Link not found")
             
+        else:
+            st.error(f"❌ Link not found. The short code '{short_code}' does not exist.")
+            st.markdown(f"[Go to {APP_NAME}]({APP_URL})")
+    
     except Exception as e:
-        st.error(f"Error: {str(e)}")
-        if 'original_url' in locals():
+        st.error(f"An error occurred: {str(e)}")
+        if 'original_url' in locals() and original_url:
             st.markdown(f'<meta http-equiv="refresh" content="2;url={original_url}">', unsafe_allow_html=True)

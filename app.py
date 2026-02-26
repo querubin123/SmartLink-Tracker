@@ -28,153 +28,174 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Generic branding - No specific product name
-APP_NAME = "URL Shortener"
-APP_DOMAIN = "yourbrand.com"  # Change this to your actual domain
-APP_URL = "https://smartlink-tracker.streamlit.app"  # Your actual Streamlit URL
+# ============================================================================
+# PROFESSIONAL UI ENHANCEMENTS
+# ============================================================================
 
-# ============================================================================
-# ENHANCED UI - Professional Design with Better Contrast
-# ============================================================================
+# Custom CSS for professional modern UI
 st.markdown("""
 <style>
-    /* ===== Modern Color Palette ===== */
+    /* ===== MODERN COLOR PALETTE ===== */
     :root {
-        --primary: #2563eb;
-        --primary-light: #3b82f6;
-        --primary-dark: #1d4ed8;
-        --secondary: #7c3aed;
-        --secondary-light: #8b5cf6;
-        --success: #059669;
-        --warning: #d97706;
-        --danger: #dc2626;
-        --info: #2563eb;
+        --primary: #0a2c4e;
+        --primary-light: #1e4a7a;
+        --primary-dark: #051c30;
+        --secondary: #2d7a4b;
+        --secondary-light: #3e9e5f;
+        --accent: #f0b400;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
         
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
         
-        --bg-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-        --hover-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.2);
+        --bg-gradient: linear-gradient(135deg, #0a2c4e 0%, #1e4a7a 100%);
+        --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+        --hover-shadow: 0 30px 35px -10px rgba(10, 44, 78, 0.15);
+        --border-radius: 16px;
+        --border-radius-sm: 12px;
     }
 
-    /* ===== Global Typography ===== */
+    /* ===== GLOBAL STYLES ===== */
     * {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--gray-800) !important;
-        font-weight: 600 !important;
-        letter-spacing: -0.025em !important;
+    .stApp {
+        background: var(--gray-50);
     }
 
-    p, li, span {
-        color: var(--gray-600) !important;
-        line-height: 1.6 !important;
-    }
-
-    /* ===== Professional Header ===== */
+    /* ===== PROFESSIONAL HEADER ===== */
     .professional-header {
         background: var(--bg-gradient);
-        padding: 2.5rem 2rem;
-        border-radius: 1.5rem;
-        margin-bottom: 2rem;
+        padding: 3rem 2.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2.5rem;
         color: white;
         box-shadow: var(--card-shadow);
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .professional-header::before {
         content: '';
         position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: radial-gradient(circle at top right, rgba(255,255,255,0.2) 0%, transparent 60%);
-        pointer-events: none;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 30s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
     .professional-header h1 {
         color: white !important;
-        font-size: 2.5rem !important;
+        font-size: 3.2rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        letter-spacing: -0.02em !important;
+        position: relative;
+        z-index: 1;
     }
 
     .professional-header p {
-        color: rgba(255, 255, 255, 0.95) !important;
-        font-size: 1.1rem !important;
-        margin: 0.5rem 0 0 0 !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 1.2rem !important;
+        margin: 0.75rem 0 0 0 !important;
         font-weight: 400 !important;
+        position: relative;
+        z-index: 1;
     }
 
-    /* ===== Domain Badge ===== */
+    /* ===== DOMAIN BADGE ===== */
     .domain-badge {
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
-        padding: 0.75rem 1.5rem;
+        padding: 0.875rem 2rem;
         border-radius: 100px;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-top: 1.5rem;
+        gap: 0.75rem;
+        margin-top: 2rem;
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: white !important;
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 500;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+
+    .domain-badge:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.3);
     }
 
     .domain-badge strong {
         color: white !important;
         font-weight: 600;
         background: rgba(255, 255, 255, 0.2);
-        padding: 0.25rem 0.75rem;
+        padding: 0.35rem 1rem;
         border-radius: 50px;
-        margin-left: 0.25rem;
+        font-family: 'SF Mono', 'Monaco', monospace;
     }
 
-    /* ===== Cards ===== */
+    /* ===== MODERN CARDS ===== */
     .professional-card {
         background: white;
-        padding: 1.5rem;
-        border-radius: 1rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        margin: 1rem 0;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        margin: 1.5rem 0;
         border: 1px solid var(--gray-200);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .professional-card:hover {
         box-shadow: var(--hover-shadow);
-        transform: translateY(-2px);
+        transform: translateY(-4px);
         border-color: var(--primary-light);
     }
 
     .professional-card h4 {
         color: var(--gray-800) !important;
-        font-size: 1.1rem !important;
+        font-size: 1.2rem !important;
         font-weight: 600 !important;
-        margin: 0 0 1rem 0 !important;
-        padding-bottom: 0.75rem;
+        margin: 0 0 1.5rem 0 !important;
+        padding-bottom: 1rem;
         border-bottom: 2px solid var(--gray-100);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .professional-card h4::before {
+        content: '📌';
+        font-size: 1.2rem;
+        opacity: 0.7;
     }
 
     .professional-card p {
         color: var(--gray-600) !important;
-        margin: 0.75rem 0 !important;
+        margin: 1rem 0 !important;
+        line-height: 1.6 !important;
     }
 
     .professional-card strong {
@@ -186,26 +207,27 @@ st.markdown("""
         color: var(--primary);
         text-decoration: none;
         font-weight: 500;
+        border-bottom: 1px dashed var(--primary-light);
     }
 
     .professional-card a:hover {
         color: var(--primary-dark);
-        text-decoration: underline;
+        border-bottom: 1px solid var(--primary);
     }
 
-    /* ===== URL Display ===== */
+    /* ===== URL DISPLAY ===== */
     .url-container {
-        background: var(--gray-50);
-        padding: 1.5rem;
-        border-radius: 1rem;
-        border: 1px solid var(--gray-200);
-        margin: 1rem 0;
+        background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        border: 2px solid var(--gray-200);
+        margin: 1.5rem 0;
         transition: all 0.3s ease;
     }
 
     .url-container:hover {
         border-color: var(--primary-light);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(10, 44, 78, 0.1);
     }
 
     .short-url {
@@ -213,124 +235,149 @@ st.markdown("""
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
     }
 
     .short-url a {
         background: white;
         color: var(--primary) !important;
         text-decoration: none;
-        padding: 0.75rem 1.25rem;
-        border-radius: 0.75rem;
-        font-size: 1.2rem;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 1.3rem;
         font-weight: 600;
         border: 2px solid var(--primary-light);
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .short-url a:hover {
         background: var(--primary);
         color: white !important;
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 15px 25px -8px var(--primary);
         border-color: var(--primary);
     }
 
     .short-url a::before {
         content: '🔗';
-        font-size: 1.2rem;
+        font-size: 1.4rem;
     }
 
     .copy-btn {
         background: white;
-        border: 2px solid var(--primary-light);
-        color: var(--primary);
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.75rem;
+        border: 2px solid var(--gray-300);
+        color: var(--gray-600);
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius-sm);
         cursor: pointer;
-        font-size: 0.95rem;
+        font-size: 1rem;
         font-weight: 600;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
     .copy-btn:hover {
         background: var(--primary);
         color: white;
+        border-color: var(--primary);
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 10px 20px -8px var(--primary);
+    }
+
+    .copy-btn::before {
+        content: '📋';
+        font-size: 1.2rem;
     }
 
     .original-url {
         color: var(--gray-500) !important;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         word-break: break-all;
-        padding: 0.75rem;
+        padding: 1rem 1.5rem;
         background: white;
-        border-radius: 0.5rem;
+        border-radius: var(--border-radius-sm);
         border: 1px dashed var(--gray-300);
+        margin-top: 1rem;
     }
 
-    /* ===== Metric Cards ===== */
+    .original-url::before {
+        content: '📎 Original: ';
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+
+    /* ===== METRIC CARDS ===== */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
     }
 
     .metric-card {
         background: white;
-        padding: 1.5rem;
-        border-radius: 1rem;
+        padding: 2rem;
+        border-radius: var(--border-radius);
         text-align: center;
         border: 1px solid var(--gray-200);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
     }
 
     .metric-card:hover {
-        transform: translateY(-2px);
+        transform: translateY(-4px);
         box-shadow: var(--hover-shadow);
-        border-color: var(--primary-light);
     }
 
     .metric-value {
-        font-size: 2.2rem;
+        font-size: 2.8rem;
         font-weight: 700;
         color: var(--primary) !important;
         line-height: 1.2;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
 
     .metric-label {
         color: var(--gray-500) !important;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         font-weight: 600;
     }
 
-    /* ===== Click Cards (Live Feed) ===== */
+    /* ===== CLICK CARDS ===== */
     .click-card {
         background: white;
-        padding: 1.25rem;
-        border-radius: 0.75rem;
-        margin: 0.75rem 0;
+        padding: 1.5rem;
+        border-radius: var(--border-radius-sm);
+        margin: 1rem 0;
         border: 1px solid var(--gray-200);
         border-left: 4px solid var(--primary);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
         animation: slideIn 0.3s ease-out;
     }
 
     .click-card:hover {
-        box-shadow: var(--card-shadow);
+        box-shadow: var(--hover-shadow);
         transform: translateX(4px);
         border-left-width: 6px;
     }
@@ -338,7 +385,7 @@ st.markdown("""
     @keyframes slideIn {
         from {
             opacity: 0;
-            transform: translateX(-10px);
+            transform: translateX(-20px);
         }
         to {
             opacity: 1;
@@ -350,11 +397,11 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
     }
 
     .click-card-code {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 600;
         color: var(--gray-800) !important;
     }
@@ -362,237 +409,320 @@ st.markdown("""
     .click-card-code a {
         color: var(--primary);
         text-decoration: none;
+        border-bottom: 1px dashed transparent;
+    }
+
+    .click-card-code a:hover {
+        border-bottom: 1px dashed var(--primary);
     }
 
     .click-card-time {
         color: var(--gray-400) !important;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 500;
+        background: var(--gray-100);
+        padding: 0.35rem 1rem;
+        border-radius: 50px;
     }
 
     .click-card-details {
         display: flex;
-        gap: 1.5rem;
+        gap: 2rem;
         flex-wrap: wrap;
         color: var(--gray-600);
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
 
     .click-card-details span {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.5rem;
+        background: var(--gray-50);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
     }
 
-    /* ===== Success Box ===== */
+    /* ===== SUCCESS BOX ===== */
     .success-box {
-        background: #f0fdf4;
-        padding: 2rem;
-        border-radius: 1rem;
-        border: 1px solid #bbf7d0;
-        margin: 1rem 0;
-        box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.1);
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        padding: 2.5rem;
+        border-radius: var(--border-radius);
+        border: 1px solid #86efac;
+        margin: 2rem 0;
+        box-shadow: var(--card-shadow);
     }
 
     .success-box h3 {
-        color: var(--success) !important;
-        font-size: 1.5rem !important;
-        margin: 0 0 1rem 0 !important;
+        color: #166534 !important;
+        font-size: 1.8rem !important;
+        margin: 0 0 1.5rem 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
-    .success-box strong {
-        color: var(--gray-700) !important;
+    .success-box h3::before {
+        content: '✅';
+        font-size: 2rem;
     }
 
     .success-box code {
-        background: #dcfce7;
-        color: var(--success) !important;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
+        background: white;
+        color: #166534 !important;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        border: 1px solid #86efac;
     }
 
-    /* ===== Info Box ===== */
+    /* ===== INFO BOX ===== */
     .info-box {
-        background: #eff6ff;
-        padding: 1rem 1.5rem;
-        border-radius: 0.75rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        padding: 1.5rem 2rem;
+        border-radius: var(--border-radius-sm);
         border-left: 4px solid var(--primary);
         color: var(--gray-700) !important;
-        margin: 1rem 0;
+        margin: 1.5rem 0;
     }
 
-    /* ===== Form Elements ===== */
+    /* ===== FORM ELEMENTS ===== */
     .stTextInput > div > div > input {
         border: 2px solid var(--gray-200) !important;
-        border-radius: 0.75rem !important;
-        padding: 0.75rem 1rem !important;
+        border-radius: var(--border-radius-sm) !important;
+        padding: 0.9rem 1.2rem !important;
         font-size: 1rem !important;
         transition: all 0.3s ease !important;
+        background: white !important;
     }
 
     .stTextInput > div > div > input:focus {
         border-color: var(--primary) !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+        box-shadow: 0 0 0 4px rgba(10, 44, 78, 0.1) !important;
     }
 
     .stSelectbox > div > div > div {
         border: 2px solid var(--gray-200) !important;
-        border-radius: 0.75rem !important;
+        border-radius: var(--border-radius-sm) !important;
+        padding: 0.5rem !important;
     }
 
-    /* ===== Buttons ===== */
+    /* ===== BUTTONS ===== */
     .stButton > button {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         color: white !important;
         border: none !important;
-        padding: 0.75rem 2rem !important;
+        padding: 0.9rem 2.5rem !important;
         font-weight: 600 !important;
-        font-size: 1rem !important;
-        border-radius: 0.75rem !important;
+        font-size: 1.1rem !important;
+        border-radius: var(--border-radius-sm) !important;
         transition: all 0.3s ease !important;
         text-transform: none !important;
         letter-spacing: normal !important;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        box-shadow: 0 4px 6px -1px rgba(10, 44, 78, 0.2) !important;
+        width: 100%;
     }
 
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 12px -2px rgba(37, 99, 235, 0.3) !important;
+        box-shadow: 0 10px 15px -3px rgba(10, 44, 78, 0.3) !important;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%) !important;
     }
 
-    /* ===== Tabs ===== */
+    /* ===== TABS ===== */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 0.5rem;
-        background: var(--gray-50);
-        padding: 0.5rem;
-        border-radius: 1rem;
+        gap: 1rem;
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--border-radius);
         border: 1px solid var(--gray-200);
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
+        box-shadow: var(--card-shadow);
     }
 
     .stTabs [data-baseweb="tab"] {
-        padding: 0.75rem 1.5rem;
+        padding: 0.9rem 2rem;
         font-weight: 600;
         color: var(--gray-500) !important;
-        border-radius: 0.75rem;
+        border-radius: var(--border-radius-sm);
         transition: all 0.3s ease;
+        font-size: 1rem;
     }
 
     .stTabs [aria-selected="true"] {
-        background: white !important;
-        color: var(--primary) !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        background: var(--primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 6px -1px rgba(10, 44, 78, 0.2);
     }
 
-    /* ===== Expander ===== */
+    /* ===== EXPANDER ===== */
     .streamlit-expanderHeader {
-        background: var(--gray-50) !important;
-        border: 1px solid var(--gray-200) !important;
-        border-radius: 0.75rem !important;
-        padding: 0.75rem 1rem !important;
-        font-weight: 500 !important;
+        background: white !important;
+        border: 2px solid var(--gray-200) !important;
+        border-radius: var(--border-radius-sm) !important;
+        padding: 1rem 1.5rem !important;
+        font-weight: 600 !important;
         color: var(--gray-700) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .streamlit-expanderHeader:hover {
+        border-color: var(--primary-light) !important;
     }
 
     .streamlit-expanderContent {
-        border: 1px solid var(--gray-200) !important;
+        border: 2px solid var(--gray-200) !important;
         border-top: none !important;
-        border-radius: 0 0 0.75rem 0.75rem !important;
-        padding: 1.5rem !important;
+        border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm) !important;
+        padding: 2rem !important;
         background: white;
     }
 
-    /* ===== DataFrames ===== */
+    /* ===== DATAFRAMES ===== */
     .stDataFrame {
         border: 1px solid var(--gray-200) !important;
-        border-radius: 0.75rem !important;
+        border-radius: var(--border-radius-sm) !important;
         overflow: hidden !important;
+        box-shadow: var(--card-shadow);
     }
 
     .stDataFrame th {
-        background: var(--gray-50) !important;
+        background: var(--gray-100) !important;
         color: var(--gray-700) !important;
         font-weight: 600 !important;
-        padding: 0.75rem 1rem !important;
+        padding: 1rem !important;
+        font-size: 0.95rem !important;
     }
 
     .stDataFrame td {
         color: var(--gray-600) !important;
-        padding: 0.75rem 1rem !important;
+        padding: 0.9rem 1rem !important;
+        font-size: 0.95rem !important;
     }
 
-    /* ===== Alerts ===== */
-    .stAlert {
-        border-radius: 0.75rem !important;
-        border: none !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
-    }
-
-    /* ===== Download Button ===== */
+    /* ===== DOWNLOAD BUTTON ===== */
     .stDownloadButton > button {
         background: white !important;
         color: var(--primary) !important;
         border: 2px solid var(--primary) !important;
-        padding: 0.5rem 1.5rem !important;
+        padding: 0.8rem 2rem !important;
         font-weight: 600 !important;
-        border-radius: 0.75rem !important;
+        border-radius: var(--border-radius-sm) !important;
         transition: all 0.3s ease !important;
+        width: 100%;
     }
 
     .stDownloadButton > button:hover {
         background: var(--primary) !important;
         color: white !important;
         transform: translateY(-2px) !important;
+        box-shadow: 0 10px 15px -3px rgba(10, 44, 78, 0.2) !important;
     }
 
-    /* ===== Tooltips ===== */
+    /* ===== FOOTER ===== */
+    .footer {
+        text-align: center;
+        padding: 3rem 2rem 1.5rem;
+        color: var(--gray-400);
+        font-size: 0.9rem;
+        border-top: 1px solid var(--gray-200);
+        margin-top: 4rem;
+        background: white;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .footer span {
+        display: inline-block;
+        padding: 0 1rem;
+    }
+
+    .footer-dot {
+        color: var(--primary);
+        font-size: 1.2rem;
+        margin: 0 0.5rem;
+    }
+
+    /* ===== RADIO BUTTONS ===== */
+    .stRadio > div {
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .stRadio label {
+        color: var(--gray-600) !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* ===== METRICS ===== */
+    [data-testid="stMetricValue"] {
+        color: var(--primary) !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: var(--gray-500) !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* ===== TOOLTIPS ===== */
     [data-testid="stTooltip"] {
         background: var(--gray-800) !important;
         color: white !important;
-        border-radius: 0.5rem !important;
-        padding: 0.5rem 1rem !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1rem !important;
         font-size: 0.85rem !important;
+        font-weight: 500 !important;
     }
 
-    /* ===== Footer ===== */
-    .footer {
-        text-align: center;
-        padding: 2rem;
-        color: var(--gray-400);
-        font-size: 0.85rem;
-        border-top: 1px solid var(--gray-200);
-        margin-top: 3rem;
+    /* ===== PLOTLY CHARTS ===== */
+    .js-plotly-plot {
+        border-radius: var(--border-radius-sm);
+        background: white;
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--card-shadow);
+    }
+
+    /* ===== PROGRESS BARS ===== */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    }
+
+    /* ===== ALERTS ===== */
+    .stAlert {
+        border-radius: var(--border-radius-sm) !important;
+        border: none !important;
+        box-shadow: var(--card-shadow) !important;
+        padding: 1rem 1.5rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================================
-# PROFESSIONAL HEADER - Generic Version
+# PROFESSIONAL HEADER - Clean and Modern
 # ============================================================================
 st.markdown(f"""
 <div class="professional-header">
     <h1>🔗 URL Shortener & Analytics</h1>
-    <p>Shorten, track, and analyze every click with precision</p>
+    <p>Shorten, track, and analyze every click with enterprise-grade precision</p>
     <div class="domain-badge">
-        <span>Your links:</span>
-        <strong>{APP_DOMAIN}/<span style="font-weight:300;">[your-code]</span></strong>
+        <span>✨ Your branded domain</span>
+        <strong>yourbrand.com/<span style="font-weight:300;">[your-code]</span></strong>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Add a subtle footer
-st.markdown("""
-<div class="footer">
-    <span>© 2024 URL Shortener Platform · Professional Link Analytics · Secure · Reliable · Real-time</span>
-</div>
-""", unsafe_allow_html=True)
+# ============================================================================
+# REST OF YOUR EXISTING CODE (DATABASE, FUNCTIONS, TABS, ETC.) GOES HERE
+# ============================================================================
 
-# ============================================================================
-# REST OF YOUR CODE CONTINUES HERE
-# ============================================================================
 # [Keep all your existing database functions, geolocation functions, 
-#  time functions, and the rest of your app code here]
+#  time functions, and the rest of your app code here - everything from your original code]
 
 # Database setup
 @st.cache_resource
@@ -662,6 +792,9 @@ except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()
 
+# ============================================================================
+# ACCURATE IP AND GEOLOCATION FUNCTIONS
+# ============================================================================
 
 def get_real_client_ip():
     """
@@ -711,8 +844,8 @@ def get_real_client_ip():
     except:
         pass
     
-    # If all else fails, return a default (this will be overwritten by geolocation fallback)
-    print("Could not determine real IP, using default")
+    # If all else fails, return None
+    print("Could not determine real IP")
     return None
 
 def get_accurate_geo_info():
@@ -741,7 +874,6 @@ def get_accurate_geo_info():
     print(f"Attempting geolocation for IP: {client_ip}")
     
     # PRIMARY API: ip-api.com (fast, free, no API key needed)
-    # This is very accurate and includes city-level data
     try:
         response = requests.get(
             f'http://ip-api.com/json/{client_ip}?fields=status,country,city,regionName,lat,lon,isp,query',
@@ -764,7 +896,7 @@ def get_accurate_geo_info():
     except Exception as e:
         print(f"ip-api.com failed: {e}")
     
-    # SECONDARY API: ipapi.co (free tier, requires no API key for basic usage)
+    # SECONDARY API: ipapi.co
     try:
         response = requests.get(f'https://ipapi.co/{client_ip}/json/', timeout=5)
         if response.status_code == 200:
@@ -784,31 +916,11 @@ def get_accurate_geo_info():
     except Exception as e:
         print(f"ipapi.co failed: {e}")
     
-    # TERTIARY API: ipinfo.io (free tier with token, but we'll try without)
-    try:
-        response = requests.get(f'https://ipinfo.io/{client_ip}/json', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('country'):
-                geo_data.update({
-                    'country': data.get('country', 'Unknown'),
-                    'city': data.get('city', 'Unknown'),
-                    'region': data.get('region', 'Unknown'),
-                    'latitude': float(data.get('loc', '0,0').split(',')[0]) if data.get('loc') else 0.0,
-                    'longitude': float(data.get('loc', '0,0').split(',')[1]) if data.get('loc') else 0.0,
-                    'isp': data.get('org', 'Unknown'),
-                    'ip': client_ip
-                })
-                print(f"ipinfo.io success: {geo_data['country']}, {geo_data['city']}")
-                return geo_data
-    except Exception as e:
-        print(f"ipinfo.io failed: {e}")
-    
     print(f"All geolocation APIs failed for IP: {client_ip}")
     return geo_data
 
 # ============================================================================
-# FIXED: Accurate Time Functions
+# ACCURATE TIME FUNCTIONS
 # ============================================================================
 
 def get_local_time():
@@ -880,17 +992,6 @@ def parse_user_agent_accurate(user_agent_string):
             'os_version': 'Unknown'
         }
 
-# Professional header
-st.markdown(f"""
-<div class="professional-header">
-    <h1 style="font-size: 3rem; margin: 0;">📊 {APP_NAME}</h1>
-    <p style="font-size: 1.25rem; margin: 0.5rem 0; opacity: 0.95;">Enterprise-Grade URL Shortening & Click Analytics</p>
-    <div class="domain-badge">
-        🔗 Your links: <strong>{APP_DOMAIN}/[code]</strong>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 # Function to generate short code
 def generate_short_code(length=6):
     chars = string.ascii_letters + string.digits
@@ -904,15 +1005,19 @@ def validate_url(url):
         url = 'https://' + url
     return url
 
-# Tabs
-tab1, tab2, tab3 = st.tabs(["🔗 Create Short Link", "📊 Analytics", "🔄 Live Feed"])
+# ============================================================================
+# TABS
+# ============================================================================
+tab1, tab2, tab3 = st.tabs(["🔗 Create Short Link", "📊 Analytics Dashboard", "🔄 Live Click Feed"])
 
+# ============================================================================
 # TAB 1: Create Short Link
+# ============================================================================
 with tab1:
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("### Create New Short Link")
+        st.markdown("### ✨ Create New Short Link")
         
         with st.form("create_link"):
             # Main URL input
@@ -923,7 +1028,7 @@ with tab1:
             )
             
             # Advanced options
-            with st.expander("Advanced Options", expanded=False):
+            with st.expander("⚙️ Advanced Options", expanded=False):
                 col_a, col_b = st.columns(2)
                 with col_a:
                     custom_code = st.text_input(
@@ -938,7 +1043,7 @@ with tab1:
                         index=0
                     )
                 
-                st.markdown("##### UTM Campaign Parameters")
+                st.markdown("##### 📊 UTM Campaign Parameters")
                 col_c, col_d, col_e = st.columns(3)
                 with col_c:
                     utm_source = st.text_input("Source", placeholder="facebook")
@@ -1001,7 +1106,7 @@ with tab1:
                           utm_source, utm_medium, utm_campaign))
                     conn.commit()
                     
-                    short_url = f"{APP_URL}/?go={short_code}"
+                    short_url = f"{st.get_option('browser.serverAddress', 'https://smartlink-tracker.streamlit.app')}/?go={short_code}"
                     
                     # Format the creation time for display
                     display_time = format_timestamp(local_created_time)
@@ -1009,42 +1114,26 @@ with tab1:
                     # Success message with clickable link
                     st.markdown(f"""
                     <div class="success-box">
-                        <h3 style="margin:0 0 1rem 0;">✅ Link Created Successfully!</h3>
+                        <h3>Link Created Successfully!</h3>
                         <div class="url-container">
                             <div class="short-url">
-                                <a href="{short_url}" target="_blank">🔗 {short_url}</a>
-                                <span class="copy-btn" onclick="navigator.clipboard.writeText('{short_url}')">Copy</span>
+                                <a href="{short_url}" target="_blank">{short_url}</a>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText('{short_url}')">Copy Link</button>
                             </div>
-                            <div class="original-url">📎 Original: {url[:100]}{'...' if len(url) > 100 else ''}</div>
+                            <div class="original-url">{url}</div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 2rem;">
                             <div>
-                                <strong>Short Code:</strong> <code>{short_code}</code><br>
-                                <strong>Created:</strong> {display_time}<br>
-                                <strong>Expires:</strong> {expires_in if expires_in != 'Never' else 'Never'}
+                                <p><strong>Short Code:</strong> <code>{short_code}</code></p>
+                                <p><strong>Created:</strong> {display_time}</p>
+                                <p><strong>Expires:</strong> {expires_in if expires_in != 'Never' else 'Never'}</p>
                             </div>
                             <div style="text-align: right;">
-                                <strong>Total Clicks:</strong> 0<br>
-                                <strong>Status:</strong> <span style="color: #059669;">Active</span>
+                                <p><strong>Total Clicks:</strong> 0</p>
+                                <p><strong>Status:</strong> <span style="color: #10b981;">Active</span></p>
                             </div>
                         </div>
-                        <div style="margin-top: 1rem; text-align: center;">
-                            <p style="color: #065f46;">✨ Click the link above to test it or copy it to share!</p>
-                        </div>
                     </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Add JavaScript for copy functionality
-                    st.markdown("""
-                    <script>
-                    function copyToClipboard(text) {
-                        navigator.clipboard.writeText(text).then(function() {
-                            alert('Link copied to clipboard!');
-                        }, function(err) {
-                            console.error('Could not copy text: ', err);
-                        });
-                    }
-                    </script>
                     """, unsafe_allow_html=True)
                     
                     st.balloons()
@@ -1055,7 +1144,7 @@ with tab1:
                     st.error(f"An error occurred: {str(e)}")
     
     with col2:
-        st.markdown("### Quick Stats")
+        st.markdown("### 📈 Quick Stats")
         
         # Get stats
         c.execute("SELECT COUNT(*) FROM links")
@@ -1088,9 +1177,11 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
+# ============================================================================
 # TAB 2: Analytics Dashboard
+# ============================================================================
 with tab2:
-    st.markdown("### Analytics Dashboard")
+    st.markdown("### 📊 Analytics Dashboard")
     
     # Get all links
     c.execute("SELECT short_code, original_url, created_date, clicks FROM links ORDER BY created_date DESC")
@@ -1113,12 +1204,18 @@ with tab2:
             # Link info card
             st.markdown(f"""
             <div class="professional-card">
-                <h4 style="margin:0 0 1rem 0;">Link Information</h4>
-                <p><strong>Short Code:</strong> {short_code}</p>
-                <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">{APP_URL}/?go={short_code}</a></p>
-                <p><strong>Original URL:</strong> <a href="{link[1]}" target="_blank">{link[1][:100]}</a></p>
-                <p><strong>Created:</strong> {created_display}</p>
-                <p><strong>Total Clicks:</strong> {link[3]}</p>
+                <h4>Link Information</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div>
+                        <p><strong>Short Code:</strong> {short_code}</p>
+                        <p><strong>Short URL:</strong> <a href="{st.get_option('browser.serverAddress', 'https://smartlink-tracker.streamlit.app')}/?go={short_code}" target="_blank">Open</a></p>
+                    </div>
+                    <div>
+                        <p><strong>Created:</strong> {created_display}</p>
+                        <p><strong>Total Clicks:</strong> {link[3]}</p>
+                    </div>
+                </div>
+                <p><strong>Original URL:</strong> <a href="{link[1]}" target="_blank">{link[1][:100]}{'...' if len(link[1]) > 100 else ''}</a></p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -1206,46 +1303,73 @@ with tab2:
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("##### Clicks Over Time")
+                    st.markdown("##### 📈 Clicks Over Time")
                     df['date'] = pd.to_datetime(df['timestamp']).dt.date
                     timeline = df.groupby('date').size().reset_index(name='count')
                     fig = px.line(timeline, x='date', y='count', markers=True)
-                    fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=20))
+                    fig.update_layout(
+                        height=350,
+                        margin=dict(l=20, r=20, t=30, b=20),
+                        hovermode='x unified',
+                        plot_bgcolor='white',
+                        paper_bgcolor='white'
+                    )
+                    fig.update_traces(line_color='#0a2c4e', marker_color='#0a2c4e')
                     st.plotly_chart(fig, use_container_width=True)
                 
                 with col2:
-                    st.markdown("##### Top Countries")
+                    st.markdown("##### 🌍 Top Countries")
                     countries = df['country'].value_counts().head(10)
                     fig = px.bar(x=countries.values, y=countries.index, orientation='h')
-                    fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=20))
+                    fig.update_layout(
+                        height=350,
+                        margin=dict(l=20, r=20, t=30, b=20),
+                        showlegend=False,
+                        plot_bgcolor='white',
+                        paper_bgcolor='white'
+                    )
+                    fig.update_traces(marker_color='#0a2c4e')
                     st.plotly_chart(fig, use_container_width=True)
                 
                 # Device breakdown
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("##### Device Types")
+                    st.markdown("##### 📱 Device Types")
                     devices = df['device_type'].value_counts()
                     fig = px.pie(values=devices.values, names=devices.index, hole=0.4)
-                    fig.update_layout(height=300)
+                    fig.update_layout(
+                        height=350,
+                        margin=dict(l=20, r=20, t=30, b=20),
+                        plot_bgcolor='white',
+                        paper_bgcolor='white'
+                    )
+                    fig.update_traces(marker=dict(colors=['#0a2c4e', '#1e4a7a', '#2d7a4b']))
                     st.plotly_chart(fig, use_container_width=True)
                 
                 with col2:
-                    st.markdown("##### Browsers")
+                    st.markdown("##### 🌐 Top Browsers")
                     browsers = df['browser'].value_counts().head(5)
                     fig = px.bar(x=browsers.values, y=browsers.index, orientation='h')
-                    fig.update_layout(height=300)
+                    fig.update_layout(
+                        height=350,
+                        margin=dict(l=20, r=20, t=30, b=20),
+                        showlegend=False,
+                        plot_bgcolor='white',
+                        paper_bgcolor='white'
+                    )
+                    fig.update_traces(marker_color='#2d7a4b')
                     st.plotly_chart(fig, use_container_width=True)
                 
                 # Map if coordinates available
                 if 'latitude' in df.columns and 'longitude' in df.columns:
                     map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
                     if not map_df.empty:
-                        st.markdown("##### Click Locations Map")
+                        st.markdown("##### 🗺️ Click Locations Map")
                         st.map(map_df[['latitude', 'longitude']])
                 
-                # Detailed data with formatted timestamps
-                st.markdown("##### Recent Clicks")
+                # Detailed data
+                st.markdown("##### 📋 Recent Clicks")
                 display_df = df[['display_time', 'country', 'city', 'device_type', 'browser', 'os']].head(50)
                 display_df = display_df.rename(columns={'display_time': 'Time'})
                 st.dataframe(display_df, use_container_width=True)
@@ -1266,9 +1390,11 @@ with tab2:
     else:
         st.info("Create your first short link to see analytics!")
 
-# TAB 3: Live Feed
+# ============================================================================
+# TAB 3: Live Click Feed
+# ============================================================================
 with tab3:
-    st.markdown("### Live Click Feed")
+    st.markdown("### 🔴 Live Click Feed")
     st.markdown("*Real-time clicks across all your links*")
     
     # Get recent clicks
@@ -1293,23 +1419,23 @@ with tab3:
                 time_diff = now - click_time
                 
                 if time_diff.total_seconds() < 60:
-                    time_str = f"{int(time_diff.total_seconds())} seconds ago"
+                    time_str = f"{int(time_diff.total_seconds())}s ago"
                 elif time_diff.total_seconds() < 3600:
-                    time_str = f"{int(time_diff.total_seconds()/60)} minutes ago"
+                    time_str = f"{int(time_diff.total_seconds()/60)}m ago"
                 elif time_diff.total_seconds() < 86400:
-                    time_str = f"{int(time_diff.total_seconds()/3600)} hours ago"
+                    time_str = f"{int(time_diff.total_seconds()/3600)}h ago"
                 else:
-                    time_str = f"{int(time_diff.total_seconds()/86400)} days ago"
+                    time_str = f"{int(time_diff.total_seconds()/86400)}d ago"
             except:
-                time_str = display_time
+                time_str = "recently"
             
             st.markdown(f"""
             <div class="click-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span><strong>🔗 <a href="{APP_URL}/?go={code}" target="_blank" style="color: #2563eb;">{code}</a></strong></span>
-                    <span style="color: #64748b; font-size: 0.875rem;">{time_str}</span>
+                <div class="click-card-header">
+                    <span class="click-card-code">🔗 <a href="{st.get_option('browser.serverAddress', 'https://smartlink-tracker.streamlit.app')}/?go={code}" target="_blank">{code}</a></span>
+                    <span class="click-card-time">{time_str}</span>
                 </div>
-                <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                <div class="click-card-details">
                     <span>🌍 {country}{f' ({city})' if city else ''}</span>
                     <span>📱 {device}</span>
                     <span>🌐 {browser}</span>
@@ -1325,25 +1451,19 @@ with tab3:
 # ============================================================================
 # REDIRECT HANDLER - This runs when someone clicks a short link
 # ============================================================================
-# Check for short code in query parameters
 short_code = None
 
-# Check for 'go' parameter (our new format)
 if 'go' in st.query_params:
     short_code = st.query_params['go']
     print(f"Redirect: Found go parameter: {short_code}")
-
-# Check for 'id' parameter (old format for backward compatibility)
 elif 'id' in st.query_params:
     short_code = st.query_params['id']
     print(f"Redirect: Found id parameter: {short_code}")
 
-# If we have a short code, process the redirect
 if short_code:
     print(f"Processing redirect for code: {short_code}")
     
     try:
-        # Get the original URL from database
         c.execute("SELECT original_url, clicks FROM links WHERE short_code=?", (short_code,))
         result = c.fetchone()
         
@@ -1351,33 +1471,28 @@ if short_code:
             original_url = result[0]
             print(f"Found URL: {original_url}")
             
-            # ================================================================
-            # FIXED: Get accurate geolocation using real client IP
-            # ================================================================
+            # Get accurate geolocation
             geo_data = get_accurate_geo_info()
-            print(f"Final geo data: {geo_data}")
             
             # Parse user agent
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             ua_info = parse_user_agent_accurate(user_agent_string)
-            print(f"UA info: {ua_info}")
             
-            # Get local time for click timestamp
+            # Get local time
             click_time = get_local_time()
             
-            # Generate session ID for unique visitor tracking
+            # Generate session ID
             session_id = hashlib.md5(
                 f"{geo_data['ip']}{short_code}{datetime.now().strftime('%Y-%m-%d')}".encode()
             ).hexdigest()
             
-            # Check if this is a unique click today
+            # Check if unique
             c.execute("""
                 SELECT id FROM clicks 
                 WHERE short_code=? AND session_id=? AND DATE(timestamp)=DATE('now')
             """, (short_code, session_id))
             
             is_unique = 0 if c.fetchone() else 1
-            print(f"Is unique: {is_unique}")
             
             # Get referrer
             referrer = st.query_params.get('referrer', 'Direct')
@@ -1387,7 +1502,7 @@ if short_code:
             link_id_result = c.fetchone()
             link_id = link_id_result[0] if link_id_result else hashlib.md5(short_code.encode()).hexdigest()[:12]
             
-            # Record the click
+            # Record click
             try:
                 c.execute("""
                     INSERT INTO clicks (
@@ -1396,79 +1511,47 @@ if short_code:
                         os, os_version, referrer, user_agent, session_id, is_unique
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    link_id,
-                    short_code,
-                    click_time,  # Use local time
-                    geo_data['ip'],
-                    geo_data['country'],
-                    geo_data['city'],
-                    geo_data['region'],
-                    geo_data['latitude'],
-                    geo_data['longitude'],
-                    geo_data['isp'],
-                    ua_info['device_type'],
-                    ua_info['browser'],
-                    ua_info['browser_version'],
-                    ua_info['os'],
-                    ua_info['os_version'],
-                    referrer,
-                    user_agent_string,
-                    session_id,
-                    1 if is_unique else 0
+                    link_id, short_code, click_time, geo_data['ip'],
+                    geo_data['country'], geo_data['city'], geo_data['region'],
+                    geo_data['latitude'], geo_data['longitude'], geo_data['isp'],
+                    ua_info['device_type'], ua_info['browser'], ua_info['browser_version'],
+                    ua_info['os'], ua_info['os_version'], referrer,
+                    user_agent_string, session_id, 1 if is_unique else 0
                 ))
                 
-                # Update click count in links table
                 c.execute("UPDATE links SET clicks = clicks + 1 WHERE short_code=?", (short_code,))
                 conn.commit()
-                print(f"Click recorded successfully for {short_code}")
-                print(f"Location: {geo_data['country']}, {geo_data['city']}")
+                print(f"Click recorded: {geo_data['country']}, {geo_data['city']}")
                 
             except Exception as e:
                 print(f"Error recording click: {e}")
-                conn.rollback()
             
-            # Create HTML redirect page with tracking info
+            # Redirect page
             html_content = f"""
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Redirecting to {original_url[:50]}...</title>
+                <title>Redirecting...</title>
                 <meta http-equiv="refresh" content="2;url={original_url}">
                 <style>
                     body {{
                         margin: 0;
                         padding: 0;
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+                        background: linear-gradient(135deg, #0a2c4e 0%, #1e4a7a 100%);
                         color: white;
                         min-height: 100vh;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                     }}
-                    .container {{
-                        text-align: center;
-                        padding: 2rem;
-                        max-width: 600px;
-                    }}
+                    .container {{ text-align: center; padding: 2rem; max-width: 500px; }}
                     .card {{
-                        background: rgba(255, 255, 255, 0.1);
+                        background: rgba(255,255,255,0.1);
                         backdrop-filter: blur(10px);
                         padding: 2rem;
-                        border-radius: 1rem;
+                        border-radius: 20px;
                         margin: 2rem 0;
-                        border: 1px solid rgba(255,255,255,0.2);
-                    }}
-                    .grid {{
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 1rem;
-                        margin: 1.5rem 0;
-                    }}
-                    .item {{
-                        background: rgba(255, 255, 255, 0.05);
-                        padding: 1rem;
-                        border-radius: 0.5rem;
                     }}
                     .loader {{
                         width: 50px;
@@ -1479,67 +1562,44 @@ if short_code:
                         animation: spin 1s linear infinite;
                         margin: 2rem auto;
                     }}
-                    @keyframes spin {{
-                        0% {{ transform: rotate(0deg); }}
-                        100% {{ transform: rotate(360deg); }}
-                    }}
-                    h1 {{ font-size: 3rem; margin: 0; }}
-                    .url {{ 
-                        color: #a5f3fc; 
-                        word-break: break-all;
-                        font-size: 0.9rem;
-                        margin-top: 0.5rem;
-                    }}
-                    a {{ color: white; }}
+                    @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h1>📊</h1>
-                    <h2>LinkMetrics Pro</h2>
+                    <h1 style="font-size: 3rem;">🔗</h1>
+                    <h2>URL Shortener</h2>
                     <div class="card">
-                        <h3 style="margin-top:0;">📍 Your Location</h3>
-                        <div class="grid">
-                            <div class="item">
-                                <div>🌍 Country</div>
-                                <strong>{geo_data['country']}</strong>
-                            </div>
-                            <div class="item">
-                                <div>🏙️ City</div>
-                                <strong>{geo_data['city']}</strong>
-                            </div>
-                            <div class="item">
-                                <div>📱 Device</div>
-                                <strong>{ua_info['device_type']}</strong>
-                            </div>
-                            <div class="item">
-                                <div>🌐 Browser</div>
-                                <strong>{ua_info['browser']}</strong>
-                            </div>
-                        </div>
-                        <p style="margin:0;"><small>ISP: {geo_data['isp']}</small></p>
+                        <p style="margin:0;"><strong>{geo_data['country']}</strong> • <strong>{geo_data['city']}</strong></p>
+                        <p style="margin:0.5rem 0 0 0;">{ua_info['device_type']} • {ua_info['browser']}</p>
                     </div>
                     <div class="loader"></div>
-                    <p style="font-size: 1.2rem;">Tracking your click...</p>
-                    <p>Redirecting to:</p>
-                    <div class="url">{original_url[:100]}{'...' if len(original_url) > 100 else ''}</div>
-                    <p><small>If you're not redirected in 2 seconds, <a href="{original_url}">click here</a></small></p>
+                    <p>Redirecting you to your destination...</p>
                 </div>
             </body>
             </html>
             """
             
-            # Display the HTML
             st.markdown(html_content, unsafe_allow_html=True)
-            
-            # Stop further Streamlit execution
             st.stop()
             
         else:
-            st.error(f"❌ Link not found. The short code '{short_code}' does not exist.")
-            st.markdown(f"[Go to {APP_NAME}]({APP_URL})")
-    
+            st.error("Link not found")
+            
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        st.error(f"Error: {str(e)}")
         if 'original_url' in locals() and original_url:
             st.markdown(f'<meta http-equiv="refresh" content="2;url={original_url}">', unsafe_allow_html=True)
+
+# ============================================================================
+# FOOTER
+# ============================================================================
+st.markdown("""
+<div class="footer">
+    <span>© 2024 URL Shortener Platform</span>
+    <span class="footer-dot">•</span>
+    <span>Professional Link Analytics</span>
+    <span class="footer-dot">•</span>
+    <span>Secure & Reliable</span>
+</div>
+""", unsafe_allow_html=True)

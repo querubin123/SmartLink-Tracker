@@ -21,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for enhanced UI
+# Custom CSS for enhanced UI - FIXED for better visibility
 st.markdown("""
 <style>
     /* Main container styling */
@@ -35,21 +35,30 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
     
-    /* Card styling */
+    /* Card styling - FIXED for better text visibility */
     .custom-card {
-        background: white;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         padding: 1.5rem;
         border-radius: 1rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin: 1rem 0;
         transition: transform 0.3s ease;
+        color: #2c3e50;
+        border: 1px solid rgba(0,0,0,0.05);
     }
     .custom-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 15px rgba(0,0,0,0.2);
     }
+    .custom-card h4 {
+        color: #667eea;
+        margin-top: 0;
+    }
+    .custom-card p {
+        color: #2c3e50;
+    }
     
-    /* Metric cards */
+    /* Metric cards - FIXED text visibility */
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -61,19 +70,82 @@ st.markdown("""
     .metric-card h3 {
         font-size: 2rem;
         margin: 0;
+        color: white;
+        font-weight: bold;
     }
     .metric-card p {
         margin: 0;
         opacity: 0.9;
+        color: white;
+        font-size: 1rem;
     }
     
-    /* Success message styling */
+    /* Success message styling - FIXED */
     .success-message {
-        background: #10b981;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
-        padding: 1rem;
+        padding: 1.5rem;
         border-radius: 0.5rem;
         animation: slideIn 0.5s ease;
+        margin: 1rem 0;
+    }
+    .success-message h3 {
+        color: white;
+        margin-top: 0;
+    }
+    .success-message p {
+        color: white;
+    }
+    .success-message code {
+        background: rgba(255,255,255,0.2);
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.3rem;
+        color: white;
+    }
+    
+    /* Quick stats cards - FIXED */
+    .quick-stats {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: #2c3e50;
+    }
+    .quick-stats h4 {
+        color: #667eea;
+        margin: 0 0 0.5rem 0;
+    }
+    .quick-stats h2 {
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    /* Info boxes - FIXED */
+    .info-box {
+        background: #e8f4fd;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #667eea;
+        color: #2c3e50;
+    }
+    .info-box p {
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    /* Click feed cards - FIXED */
+    .click-card {
+        background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 8px 0;
+        border-left: 5px solid #667eea;
+        animation: slideIn 0.3s ease;
+        color: #2c3e50;
+    }
+    .click-card span {
+        color: #2c3e50;
     }
     
     @keyframes slideIn {
@@ -118,6 +190,41 @@ st.markdown("""
         border-radius: 1rem;
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        background: white;
+        padding: 1rem;
+    }
+    
+    /* Text color fixes for Streamlit default elements */
+    .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
+        color: #2c3e50;
+    }
+    
+    /* Fix for selectbox text */
+    .stSelectbox label {
+        color: #2c3e50 !important;
+    }
+    
+    /* Fix for radio buttons */
+    .stRadio label {
+        color: #2c3e50 !important;
+    }
+    
+    /* Fix for metric delta colors */
+    [data-testid="stMetricValue"] {
+        color: #2c3e50 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #2c3e50 !important;
+    }
+    
+    /* Fix for dataframe text */
+    .stDataFrame {
+        color: #2c3e50 !important;
+    }
+    
+    /* Fix for expander text */
+    .streamlit-expanderHeader {
+        color: #2c3e50 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -174,9 +281,43 @@ def init_db():
 # Initialize connection with error handling
 try:
     conn = init_db()
+    
+    # MIGRATION: Add missing columns if they don't exist
+    def migrate_database():
+        try:
+            c = conn.cursor()
+            
+            # Check existing columns in clicks table
+            c.execute("PRAGMA table_info(clicks)")
+            existing_columns = [column[1] for column in c.fetchall()]
+            
+            # Columns to add if missing
+            columns_to_add = {
+                'region': 'TEXT',
+                'latitude': 'REAL',
+                'longitude': 'REAL',
+                'isp': 'TEXT',
+                'session_id': 'TEXT'
+            }
+            
+            for column_name, column_type in columns_to_add.items():
+                if column_name not in existing_columns:
+                    try:
+                        c.execute(f"ALTER TABLE clicks ADD COLUMN {column_name} {column_type}")
+                        conn.commit()
+                    except Exception as e:
+                        print(f"Could not add column {column_name}: {e}")
+            
+        except Exception as e:
+            print(f"Migration error: {e}")
+    
+    # Run migration
+    migrate_database()
+    
     # Test database is writable
     c = conn.cursor()
     c.execute("SELECT 1")
+    
 except Exception as e:
     st.error(f"Database initialization error: {str(e)}")
     st.stop()
@@ -408,17 +549,17 @@ with tab1:
         
         # Display stats in cards
         st.markdown(f"""
-        <div class="custom-card">
+        <div class="quick-stats">
             <h4>Total Links Created</h4>
             <h2 style="color: #667eea;">{total_links}</h2>
         </div>
         
-        <div class="custom-card">
+        <div class="quick-stats">
             <h4>Total Clicks Tracked</h4>
             <h2 style="color: #764ba2;">{total_clicks}</h2>
         </div>
         
-        <div class="custom-card">
+        <div class="quick-stats">
             <h4>Conversion Rate</h4>
             <h2 style="color: #10b981;">{((total_clicks/total_links)*100 if total_links > 0 else 0):.1f}%</h2>
         </div>
@@ -499,14 +640,6 @@ with tab2:
                             start_date = datetime.combine(start_date, datetime.min.time()).isoformat()
                             end_date = datetime.combine(end_date, datetime.max.time()).isoformat()
                     
-                    # Apply time filter to queries
-                    def add_time_filter(query, include_end=False):
-                        if start_date and end_date and include_end:
-                            return query + " AND timestamp BETWEEN ? AND ?"
-                        elif start_date:
-                            return query + " AND timestamp >= ?"
-                        return query
-                    
                     # Top metrics in columns
                     col1, col2, col3, col4 = st.columns(4)
                     
@@ -581,6 +714,10 @@ with tab2:
                                 days = 7
                             elif time_filter == "Last 30 Days":
                                 days = 30
+                            elif time_filter == "Custom Range" and end_date:
+                                start = datetime.fromisoformat(start_date)
+                                end = datetime.fromisoformat(end_date)
+                                days = max((end - start).days, 1)
                             avg_per_day = filtered_clicks / days
                         else:
                             avg_per_day = filtered_clicks
@@ -697,43 +834,78 @@ with tab2:
                         else:
                             st.info("💻 No OS data available")
                     
-                    # Detailed click table with map
+                    # Detailed click table
                     st.markdown("#### 📋 Recent Clicks")
                     
-                    # Get clicks with location data
-                    clicks_df = pd.read_sql_query(
-                        """SELECT timestamp, country, city, region, device_type, browser, os, ip, latitude, longitude 
-                           FROM clicks WHERE link_id=? ORDER BY id DESC LIMIT 100""", 
-                        conn, params=(link_id,))
+                    # Check which columns exist
+                    c.execute("PRAGMA table_info(clicks)")
+                    available_columns = [col[1] for col in c.fetchall()]
                     
-                    if not clicks_df.empty:
-                        # Show map if we have coordinates
-                        map_df = clicks_df[clicks_df['latitude'].notna() & (clicks_df['latitude'] != 0)]
-                        if not map_df.empty:
-                            st.markdown("##### 🗺️ Click Locations Map")
-                            st.map(map_df[['latitude', 'longitude']])
+                    # Build query based on available columns
+                    base_columns = ['timestamp', 'country', 'city', 'device_type', 'browser', 'os', 'ip']
+                    optional_columns = []
+                    
+                    if 'region' in available_columns:
+                        optional_columns.append('region')
+                    if 'latitude' in available_columns:
+                        optional_columns.append('latitude')
+                    if 'longitude' in available_columns:
+                        optional_columns.append('longitude')
+                    
+                    all_columns = base_columns + optional_columns
+                    columns_str = ', '.join(all_columns)
+                    
+                    query = f"SELECT {columns_str} FROM clicks WHERE link_id=? ORDER BY id DESC LIMIT 100"
+                    
+                    try:
+                        clicks_df = pd.read_sql_query(query, conn, params=(link_id,))
                         
-                        # Show data table
-                        st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-                        display_df = clicks_df.drop(['latitude', 'longitude'], axis=1)
-                        st.dataframe(display_df, use_container_width=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Export options
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            csv = clicks_df.to_csv(index=False)
-                            st.download_button(
-                                "📥 Export Full Data as CSV", 
-                                csv, 
-                                f"{link_id}_clicks.csv",
-                                "text/csv",
-                                use_container_width=True
-                            )
-                        with col2:
-                            st.info(f"**Total in period:** {len(clicks_df)} | **Last Click:** {clicks_df['timestamp'].iloc[0][:19]}")
-                    else:
-                        st.info("📭 No clicks recorded yet for this link in the selected period")
+                        if not clicks_df.empty:
+                            # Show map if we have coordinates
+                            if 'latitude' in clicks_df.columns and 'longitude' in clicks_df.columns:
+                                map_df = clicks_df[clicks_df['latitude'].notna() & (clicks_df['latitude'] != 0)]
+                                if not map_df.empty:
+                                    st.markdown("##### 🗺️ Click Locations Map")
+                                    st.map(map_df[['latitude', 'longitude']])
+                            
+                            # Show data table
+                            st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                            
+                            # Remove coordinate columns from display table
+                            display_df = clicks_df.copy()
+                            if 'latitude' in display_df.columns:
+                                display_df = display_df.drop(['latitude', 'longitude'], axis=1)
+                            
+                            st.dataframe(display_df, use_container_width=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                            
+                            # Export options
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                csv = clicks_df.to_csv(index=False)
+                                st.download_button(
+                                    "📥 Export Full Data as CSV", 
+                                    csv, 
+                                    f"{link_id}_clicks.csv",
+                                    "text/csv",
+                                    use_container_width=True
+                                )
+                            with col2:
+                                st.info(f"**Total in period:** {len(clicks_df)} | **Last Click:** {clicks_df['timestamp'].iloc[0][:19] if len(clicks_df) > 0 else 'N/A'}")
+                        else:
+                            st.info("📭 No clicks recorded yet for this link in the selected period")
+                    except Exception as e:
+                        st.error(f"Error loading click data: {str(e)}")
+                        # Fallback to simple query
+                        try:
+                            simple_df = pd.read_sql_query(
+                                """SELECT timestamp, country, city, device_type, browser, os, ip 
+                                   FROM clicks WHERE link_id=? ORDER BY id DESC LIMIT 100""", 
+                                conn, params=(link_id,))
+                            if not simple_df.empty:
+                                st.dataframe(simple_df, use_container_width=True)
+                        except:
+                            st.info("No click data available")
         else:
             st.info("👋 No links created yet. Go to the 'Create Short Link' tab to create your first tracking link!")
             
@@ -768,9 +940,7 @@ with tab3:
                         
                         # Create an enhanced card for each click
                         st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
-                                    padding: 15px; border-radius: 10px; margin: 8px 0;
-                                    border-left: 5px solid #667eea; animation: slideIn 0.3s ease;">
+                        <div class="click-card">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 1.1rem;"><b>🔗 {link_id}</b></span>
                                 <span style="color: #666; font-size: 0.9rem;">{timestamp[:19]}</span>

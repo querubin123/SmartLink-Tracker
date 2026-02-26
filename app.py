@@ -22,220 +22,319 @@ import socket
 
 # Page config must be the first Streamlit command
 st.set_page_config(
-    page_title="LinkMetrics Pro - URL Shortener & Analytics", 
-    page_icon="📊", 
+    page_title="URL Shortener & Analytics Platform", 
+    page_icon="🔗", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Professional branding
-APP_NAME = "LinkMetrics Pro"
-APP_DOMAIN = "linkmetrics.pro"  # This is your brand domain
+# Generic branding - No specific product name
+APP_NAME = "URL Shortener"
+APP_DOMAIN = "yourbrand.com"  # Change this to your actual domain
 APP_URL = "https://smartlink-tracker.streamlit.app"  # Your actual Streamlit URL
 
-# Custom CSS for professional UI
+# ============================================================================
+# ENHANCED UI - Professional Design with Better Contrast
+# ============================================================================
 st.markdown("""
 <style>
-    /* Professional color scheme with better contrast */
+    /* ===== Modern Color Palette ===== */
     :root {
         --primary: #2563eb;
+        --primary-light: #3b82f6;
         --primary-dark: #1d4ed8;
         --secondary: #7c3aed;
+        --secondary-light: #8b5cf6;
         --success: #059669;
         --warning: #d97706;
         --danger: #dc2626;
-        --dark: #1f2937;
-        --light: #f9fafb;
+        --info: #2563eb;
+        
+        --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
         --gray-600: #4b5563;
         --gray-700: #374151;
         --gray-800: #1f2937;
         --gray-900: #111827;
+        
+        --bg-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        --hover-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.2);
     }
-    
-    /* Main header */
+
+    /* ===== Global Typography ===== */
+    * {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--gray-800) !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.025em !important;
+    }
+
+    p, li, span {
+        color: var(--gray-600) !important;
+        line-height: 1.6 !important;
+    }
+
+    /* ===== Professional Header ===== */
     .professional-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        padding: 2.5rem;
-        border-radius: 1rem;
+        background: var(--bg-gradient);
+        padding: 2.5rem 2rem;
+        border-radius: 1.5rem;
         margin-bottom: 2rem;
         color: white;
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
     }
+
+    .professional-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at top right, rgba(255,255,255,0.2) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
     .professional-header h1 {
         color: white !important;
-        font-weight: 700;
-        margin: 0;
+        font-size: 2.5rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
     .professional-header p {
-        color: rgba(255,255,255,0.95) !important;
-        font-weight: 400;
+        color: rgba(255, 255, 255, 0.95) !important;
+        font-size: 1.1rem !important;
+        margin: 0.5rem 0 0 0 !important;
+        font-weight: 400 !important;
     }
-    
-    /* Domain badge */
+
+    /* ===== Domain Badge ===== */
     .domain-badge {
-        background: rgba(255,255,255,0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 2rem;
-        display: inline-block;
-        font-size: 1.1rem;
-        margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 100px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         color: white !important;
+        font-size: 1rem;
         font-weight: 500;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    
-    /* Card styling - improved text contrast */
+
+    .domain-badge strong {
+        color: white !important;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        margin-left: 0.25rem;
+    }
+
+    /* ===== Cards ===== */
     .professional-card {
         background: white;
         padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         margin: 1rem 0;
         border: 1px solid var(--gray-200);
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .professional-card:hover {
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        box-shadow: var(--hover-shadow);
         transform: translateY(-2px);
+        border-color: var(--primary-light);
     }
+
     .professional-card h4 {
         color: var(--gray-800) !important;
-        font-weight: 600;
-        margin-top: 0;
-        margin-bottom: 1rem;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 1rem 0 !important;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-100);
     }
+
     .professional-card p {
-        color: var(--gray-700) !important;
-        margin: 0.5rem 0;
+        color: var(--gray-600) !important;
+        margin: 0.75rem 0 !important;
     }
+
     .professional-card strong {
-        color: var(--gray-900) !important;
+        color: var(--gray-800) !important;
         font-weight: 600;
     }
+
     .professional-card a {
         color: var(--primary);
         text-decoration: none;
+        font-weight: 500;
     }
+
     .professional-card a:hover {
+        color: var(--primary-dark);
         text-decoration: underline;
     }
-    
-    /* URL display - improved visibility */
+
+    /* ===== URL Display ===== */
     .url-container {
-        background: var(--gray-100);
-        padding: 1.2rem;
-        border-radius: 0.5rem;
+        background: var(--gray-50);
+        padding: 1.5rem;
+        border-radius: 1rem;
         border: 1px solid var(--gray-200);
         margin: 1rem 0;
+        transition: all 0.3s ease;
     }
+
+    .url-container:hover {
+        border-color: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+    }
+
     .short-url {
-        font-size: 1.25rem;
-        font-weight: 600;
-        word-break: break-all;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .short-url a {
+        background: white;
+        color: var(--primary) !important;
+        text-decoration: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: 2px solid var(--primary-light);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
         gap: 0.5rem;
     }
-    .short-url a {
-        color: var(--primary);
-        text-decoration: none;
-        background: #e6f0ff;
-        padding: 0.3rem 0.8rem;
-        border-radius: 0.3rem;
-        display: inline-block;
-        transition: all 0.2s ease;
-        font-weight: 500;
-    }
+
     .short-url a:hover {
         background: var(--primary);
         color: white !important;
-        text-decoration: none;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        border-color: var(--primary);
     }
-    .original-url {
-        color: var(--gray-600) !important;
-        font-size: 0.875rem;
-        word-break: break-all;
-        margin-top: 0.5rem;
+
+    .short-url a::before {
+        content: '🔗';
+        font-size: 1.2rem;
     }
-    
-    /* Copy button styling */
+
     .copy-btn {
         background: white;
-        border: 1px solid var(--primary);
+        border: 2px solid var(--primary-light);
         color: var(--primary);
-        padding: 0.3rem 1rem;
-        border-radius: 0.3rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
         cursor: pointer;
-        font-size: 0.875rem;
-        transition: all 0.2s ease;
-        font-weight: 500;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
+
     .copy-btn:hover {
         background: var(--primary);
         color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
     }
-    
-    /* Metric cards - improved text contrast */
-    .metric-card {
+
+    .original-url {
+        color: var(--gray-500) !important;
+        font-size: 0.9rem;
+        word-break: break-all;
+        padding: 0.75rem;
         background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        text-align: center;
-        border: 1px solid var(--gray-200);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-radius: 0.5rem;
+        border: 1px dashed var(--gray-300);
     }
-    .metric-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--primary) !important;
-        line-height: 1.2;
-    }
-    .metric-label {
-        color: var(--gray-600) !important;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 500;
-    }
-    
-    /* Stats grid */
+
+    /* ===== Metric Cards ===== */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         margin: 1.5rem 0;
     }
-    
-    /* Click card for live feed - improved contrast */
-    .click-card {
+
+    .metric-card {
         background: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
         border: 1px solid var(--gray-200);
-        border-left: 4px solid var(--primary);
-        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
     }
-    .click-card span {
-        color: var(--gray-700) !important;
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--hover-shadow);
+        border-color: var(--primary-light);
     }
-    .click-card strong {
-        color: var(--gray-800) !important;
+
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--primary) !important;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
     }
-    .click-card a {
-        color: var(--primary);
-        text-decoration: none;
+
+    .metric-label {
+        color: var(--gray-500) !important;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         font-weight: 600;
     }
-    .click-card a:hover {
-        text-decoration: underline;
+
+    /* ===== Click Cards (Live Feed) ===== */
+    .click-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        margin: 0.75rem 0;
+        border: 1px solid var(--gray-200);
+        border-left: 4px solid var(--primary);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s ease;
+        animation: slideIn 0.3s ease-out;
     }
-    
+
+    .click-card:hover {
+        box-shadow: var(--card-shadow);
+        transform: translateX(4px);
+        border-left-width: 6px;
+    }
+
     @keyframes slideIn {
         from {
             opacity: 0;
@@ -246,180 +345,263 @@ st.markdown("""
             transform: translateX(0);
         }
     }
-    
-    /* Button styling */
-    .stButton > button {
-        background: var(--primary) !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.5rem 2rem !important;
-        font-weight: 500 !important;
-        border-radius: 0.375rem !important;
-        transition: all 0.3s ease !important;
+
+    .click-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
     }
-    .stButton > button:hover {
-        background: var(--primary-dark) !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        background: white;
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        border: 1px solid var(--gray-200);
-    }
-    .stTabs [data-baseweb="tab"] {
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        color: var(--gray-600) !important;
-    }
-    .stTabs [aria-selected="true"] {
-        color: var(--primary) !important;
+
+    .click-card-code {
+        font-size: 1.1rem;
         font-weight: 600;
-    }
-    
-    /* Info boxes */
-    .info-box {
-        background: #eff6ff;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid var(--primary);
         color: var(--gray-800) !important;
     }
-    .info-box p {
-        color: var(--gray-700) !important;
+
+    .click-card-code a {
+        color: var(--primary);
+        text-decoration: none;
     }
-    
-    /* Success message - improved contrast */
+
+    .click-card-time {
+        color: var(--gray-400) !important;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .click-card-details {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        color: var(--gray-600);
+        font-size: 0.95rem;
+    }
+
+    .click-card-details span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* ===== Success Box ===== */
     .success-box {
         background: #f0fdf4;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
+        padding: 2rem;
+        border-radius: 1rem;
         border: 1px solid #bbf7d0;
         margin: 1rem 0;
+        box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.1);
     }
+
     .success-box h3 {
         color: var(--success) !important;
-        font-weight: 600;
-        margin-top: 0;
+        font-size: 1.5rem !important;
+        margin: 0 0 1rem 0 !important;
     }
-    .success-box p {
+
+    .success-box strong {
         color: var(--gray-700) !important;
     }
-    .success-box strong {
-        color: var(--gray-800) !important;
-    }
+
     .success-box code {
         background: #dcfce7;
         color: var(--success) !important;
-        padding: 0.2rem 0.4rem;
-        border-radius: 0.25rem;
-        font-weight: 500;
-    }
-    
-    /* Timestamp styling */
-    .timestamp {
-        color: var(--gray-500) !important;
-        font-size: 0.8rem;
-        font-family: monospace;
-        margin-top: 0.5rem;
-    }
-    
-    /* DataFrame styling - improved visibility */
-    .stDataFrame {
-        color: var(--gray-800) !important;
-    }
-    .stDataFrame td {
-        color: var(--gray-700) !important;
-    }
-    .stDataFrame th {
-        color: var(--gray-800) !important;
-        font-weight: 600;
-        background: var(--gray-100);
-    }
-    
-    /* Text color overrides for Streamlit default elements */
-    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
-        color: var(--gray-800) !important;
-    }
-    .stMarkdown p {
-        color: var(--gray-700) !important;
-    }
-    .stMarkdown li {
-        color: var(--gray-700) !important;
-    }
-    
-    /* Selectbox and input styling */
-    .stSelectbox label, .stTextInput label {
-        color: var(--gray-700) !important;
-        font-weight: 500;
-    }
-    .stSelectbox div[data-baseweb="select"] span {
-        color: var(--gray-800) !important;
-    }
-    
-    /* Radio button styling */
-    .stRadio label {
-        color: var(--gray-700) !important;
-    }
-    .stRadio div[role="radiogroup"] {
-        color: var(--gray-800) !important;
-    }
-    
-    /* Expander styling */
-    .streamlit-expanderHeader {
-        color: var(--gray-700) !important;
-        font-weight: 500;
-        background: var(--gray-100);
+        padding: 0.25rem 0.5rem;
         border-radius: 0.375rem;
-    }
-    .streamlit-expanderContent {
-        color: var(--gray-700) !important;
-    }
-    
-    /* Metric delta colors */
-    [data-testid="stMetricValue"] {
-        color: var(--gray-800) !important;
-        font-weight: 600;
-    }
-    [data-testid="stMetricLabel"] {
-        color: var(--gray-600) !important;
         font-weight: 500;
     }
-    
-    /* Download button styling */
+
+    /* ===== Info Box ===== */
+    .info-box {
+        background: #eff6ff;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        border-left: 4px solid var(--primary);
+        color: var(--gray-700) !important;
+        margin: 1rem 0;
+    }
+
+    /* ===== Form Elements ===== */
+    .stTextInput > div > div > input {
+        border: 2px solid var(--gray-200) !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .stTextInput > div > div > input:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+    }
+
+    .stSelectbox > div > div > div {
+        border: 2px solid var(--gray-200) !important;
+        border-radius: 0.75rem !important;
+    }
+
+    /* ===== Buttons ===== */
+    .stButton > button {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        border-radius: 0.75rem !important;
+        transition: all 0.3s ease !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 12px -2px rgba(37, 99, 235, 0.3) !important;
+    }
+
+    /* ===== Tabs ===== */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: var(--gray-50);
+        padding: 0.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--gray-200);
+        margin-bottom: 2rem;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: var(--gray-500) !important;
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: white !important;
+        color: var(--primary) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ===== Expander ===== */
+    .streamlit-expanderHeader {
+        background: var(--gray-50) !important;
+        border: 1px solid var(--gray-200) !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem 1rem !important;
+        font-weight: 500 !important;
+        color: var(--gray-700) !important;
+    }
+
+    .streamlit-expanderContent {
+        border: 1px solid var(--gray-200) !important;
+        border-top: none !important;
+        border-radius: 0 0 0.75rem 0.75rem !important;
+        padding: 1.5rem !important;
+        background: white;
+    }
+
+    /* ===== DataFrames ===== */
+    .stDataFrame {
+        border: 1px solid var(--gray-200) !important;
+        border-radius: 0.75rem !important;
+        overflow: hidden !important;
+    }
+
+    .stDataFrame th {
+        background: var(--gray-50) !important;
+        color: var(--gray-700) !important;
+        font-weight: 600 !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    .stDataFrame td {
+        color: var(--gray-600) !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    /* ===== Alerts ===== */
+    .stAlert {
+        border-radius: 0.75rem !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* ===== Download Button ===== */
     .stDownloadButton > button {
         background: white !important;
         color: var(--primary) !important;
-        border: 1px solid var(--primary) !important;
-        font-weight: 500 !important;
+        border: 2px solid var(--primary) !important;
+        padding: 0.5rem 1.5rem !important;
+        font-weight: 600 !important;
+        border-radius: 0.75rem !important;
+        transition: all 0.3s ease !important;
     }
+
     .stDownloadButton > button:hover {
         background: var(--primary) !important;
         color: white !important;
+        transform: translateY(-2px) !important;
     }
-    
-    /* Warning/Error/Info messages */
-    .stAlert {
-        color: var(--gray-800) !important;
+
+    /* ===== Tooltips ===== */
+    [data-testid="stTooltip"] {
+        background: var(--gray-800) !important;
+        color: white !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem !important;
     }
-    .stAlert p {
-        color: var(--gray-800) !important;
+
+    /* ===== Footer ===== */
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--gray-200);
+        margin-top: 3rem;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# ============================================================================
+# PROFESSIONAL HEADER - Generic Version
+# ============================================================================
+st.markdown(f"""
+<div class="professional-header">
+    <h1>🔗 URL Shortener & Analytics</h1>
+    <p>Shorten, track, and analyze every click with precision</p>
+    <div class="domain-badge">
+        <span>Your links:</span>
+        <strong>{APP_DOMAIN}/<span style="font-weight:300;">[your-code]</span></strong>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Add a subtle footer
+st.markdown("""
+<div class="footer">
+    <span>© 2024 URL Shortener Platform · Professional Link Analytics · Secure · Reliable · Real-time</span>
+</div>
+""", unsafe_allow_html=True)
+
+# ============================================================================
+# REST OF YOUR CODE CONTINUES HERE
+# ============================================================================
+# [Keep all your existing database functions, geolocation functions, 
+#  time functions, and the rest of your app code here]
 
 # Database setup
 @st.cache_resource
 def init_db():
     if os.getenv('STREAMLIT_SERVER_ADDRESS'):
-        db_path = os.path.join(tempfile.gettempdir(), 'linkmetrics.db')
+        db_path = os.path.join(tempfile.gettempdir(), 'urls.db')
         os.makedirs(tempfile.gettempdir(), exist_ok=True)
     else:
-        db_path = 'linkmetrics.db'
+        db_path = 'urls.db'
     
     conn = sqlite3.connect(db_path, timeout=30, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")
@@ -428,7 +610,7 @@ def init_db():
     
     c = conn.cursor()
     
-    # Links table - store timestamps in UTC but we'll convert on display
+    # Links table
     c.execute('''CREATE TABLE IF NOT EXISTS links (
         id TEXT PRIMARY KEY,
         original_url TEXT NOT NULL,

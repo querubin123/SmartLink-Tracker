@@ -92,7 +92,7 @@ with tab1:
                     conn.commit()
                     
                     # Get the app URL
-                    app_url = "https://YOUR-APP-NAME.streamlit.app"  # Replace with your actual app URL
+                    app_url = "https://smartlink-tracker.streamlit.app/"  # Replace with your actual app URL
                     short_url = f"{app_url}/?id={link_id}"
                     
                     st.success("✅ Link created successfully!")

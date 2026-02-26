@@ -9,10 +9,20 @@ import plotly.express as px
 import plotly.graph_objects as go
 from user_agents import parse
 
-# TOOL 1: SQLite Database (auto-creates)
+# TOOL 1: SQLite Database (auto-creates) - FIXED FOR STREAMLIT CLOUD
 @st.cache_resource
 def init_db():
-    conn = sqlite3.connect('urls.db', check_same_thread=False)
+    # Check if running on Streamlit Cloud
+    import os
+    import tempfile
+    
+    # Use /tmp directory on Streamlit Cloud, local directory otherwise
+    if os.getenv('STREAMLIT_SERVER_ADDRESS'):  # Running on Streamlit Cloud
+        db_path = os.path.join(tempfile.gettempdir(), 'urls.db')
+    else:  # Running locally
+        db_path = 'urls.db'
+    
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     c = conn.cursor()
     
     # Links table
@@ -37,7 +47,6 @@ def init_db():
     
     conn.commit()
     return conn
-
 conn = init_db()
 
 st.set_page_config(page_title="SmartLink Tracker", page_icon="🔗", layout="wide")

@@ -1250,34 +1250,45 @@ with tab2:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Charts
+                # ===== FIXED: Proper datetime parsing for charts =====
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     st.markdown("##### 📈 Clicks Over Time")
-                    if 'timestamp' in df.columns:
-                        df['date'] = pd.to_datetime(df['timestamp']).dt.date
-                        timeline = df.groupby('date').size().reset_index(name='count')
-                        if not timeline.empty:
-                            fig = px.line(timeline, x='date', y='count', markers=True)
-                            fig.update_layout(
-                                height=350,
-                                margin=dict(l=20, r=20, t=30, b=20),
-                                hovermode='x unified',
-                                plot_bgcolor='white',
-                                paper_bgcolor='white'
-                            )
-                            fig.update_traces(line_color='#3498db', marker_color='#3498db')
-                            st.plotly_chart(fig, use_container_width=True)
+                    if 'timestamp' in df.columns and not df.empty:
+                        # Convert timestamp strings to datetime objects safely
+                        df['timestamp_dt'] = pd.to_datetime(df['timestamp'], errors='coerce')
+                        # Drop rows with invalid timestamps
+                        df_clean = df.dropna(subset=['timestamp_dt'])
+                        
+                        if not df_clean.empty:
+                            # Extract date safely
+                            df_clean['date'] = df_clean['timestamp_dt'].dt.date
+                            timeline = df_clean.groupby('date').size().reset_index(name='count')
+                            
+                            if not timeline.empty:
+                                fig = px.line(timeline, x='date', y='count', markers=True)
+                                fig.update_layout(
+                                    height=350,
+                                    margin=dict(l=20, r=20, t=30, b=20),
+                                    hovermode='x unified',
+                                    plot_bgcolor='white',
+                                    paper_bgcolor='white'
+                                )
+                                fig.update_traces(line_color='#3498db', marker_color='#3498db')
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("No timeline data available")
                         else:
-                            st.info("No timeline data available")
+                            st.info("No valid timestamp data")
                     else:
                         st.info("No timeline data available")
                 
                 with col2:
                     st.markdown("##### 🌍 Top Countries")
                     if 'country' in df.columns:
-                        countries = df['country'].value_counts().head(10)
+                        # Filter out unknown countries
+                        countries = df[df['country'] != 'Unknown']['country'].value_counts().head(10)
                         if not countries.empty:
                             fig = px.bar(x=countries.values, y=countries.index, orientation='h')
                             fig.update_layout(
@@ -1319,7 +1330,7 @@ with tab2:
                 with col2:
                     st.markdown("##### 🌐 Top Browsers")
                     if 'browser' in df.columns:
-                        browsers = df['browser'].value_counts().head(5)
+                        browsers = df[df['browser'] != 'Unknown']['browser'].value_counts().head(5)
                         if not browsers.empty:
                             fig = px.bar(x=browsers.values, y=browsers.index, orientation='h')
                             fig.update_layout(

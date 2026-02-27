@@ -1010,7 +1010,7 @@ with tab1:
                             </div>
                             <div style="text-align: right;">
                                 <p><strong>Total Clicks:</strong> 0</p>
-                                <p><strong>Status:</strong> <span style="color: #10b981;">Active</span></p>
+                                <p><strong>Status:</strong> <span style="color: #27ae60;">Active</span></p>
                             </div>
                         </div>
                     </div>
@@ -1149,6 +1149,7 @@ with tab2:
                 start_date = None
             
             # Get clicks for this link with safe query
+            clicks_data = []
             try:
                 if start_date:
                     c.execute("""
@@ -1158,6 +1159,7 @@ with tab2:
                     """, (short_code, start_date))
                 else:
                     c.execute("SELECT * FROM clicks WHERE short_code=? ORDER BY timestamp DESC", (short_code,))
+                clicks_data = c.fetchall()
             except:
                 # Fallback using link_id
                 try:
@@ -1174,12 +1176,9 @@ with tab2:
                             """, (link_id, start_date))
                         else:
                             c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,))
-                    else:
-                        clicks_data = []
+                        clicks_data = c.fetchall()
                 except:
                     clicks_data = []
-            
-            clicks_data = c.fetchall() if 'clicks_data' not in locals() else clicks_data
             
             if clicks_data:
                 # Determine columns from the data
@@ -1259,16 +1258,19 @@ with tab2:
                     if 'timestamp' in df.columns:
                         df['date'] = pd.to_datetime(df['timestamp']).dt.date
                         timeline = df.groupby('date').size().reset_index(name='count')
-                        fig = px.line(timeline, x='date', y='count', markers=True)
-                        fig.update_layout(
-                            height=350,
-                            margin=dict(l=20, r=20, t=30, b=20),
-                            hovermode='x unified',
-                            plot_bgcolor='white',
-                            paper_bgcolor='white'
-                        )
-                        fig.update_traces(line_color='#0a2c4e', marker_color='#0a2c4e')
-                        st.plotly_chart(fig, use_container_width=True)
+                        if not timeline.empty:
+                            fig = px.line(timeline, x='date', y='count', markers=True)
+                            fig.update_layout(
+                                height=350,
+                                margin=dict(l=20, r=20, t=30, b=20),
+                                hovermode='x unified',
+                                plot_bgcolor='white',
+                                paper_bgcolor='white'
+                            )
+                            fig.update_traces(line_color='#3498db', marker_color='#3498db')
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("No timeline data available")
                     else:
                         st.info("No timeline data available")
                 
@@ -1285,7 +1287,7 @@ with tab2:
                                 plot_bgcolor='white',
                                 paper_bgcolor='white'
                             )
-                            fig.update_traces(marker_color='#0a2c4e')
+                            fig.update_traces(marker_color='#3498db')
                             st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.info("No country data available")
@@ -1307,7 +1309,7 @@ with tab2:
                                 plot_bgcolor='white',
                                 paper_bgcolor='white'
                             )
-                            fig.update_traces(marker=dict(colors=['#0a2c4e', '#1e4a7a', '#2d7a4b']))
+                            fig.update_traces(marker=dict(colors=['#3498db', '#2c3e50', '#27ae60']))
                             st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.info("No device data available")
@@ -1327,7 +1329,7 @@ with tab2:
                                 plot_bgcolor='white',
                                 paper_bgcolor='white'
                             )
-                            fig.update_traces(marker_color='#2d7a4b')
+                            fig.update_traces(marker_color='#27ae60')
                             st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.info("No browser data available")
@@ -1355,10 +1357,11 @@ with tab2:
                 if 'os' in df.columns:
                     display_cols.append('os')
                 
-                display_df = df[display_cols].head(50) if display_cols else df.head(50)
-                if 'display_time' in display_df.columns:
-                    display_df = display_df.rename(columns={'display_time': 'Time'})
-                st.dataframe(display_df, use_container_width=True)
+                if display_cols:
+                    display_df = df[display_cols].head(50)
+                    if 'display_time' in display_df.columns:
+                        display_df = display_df.rename(columns={'display_time': 'Time'})
+                    st.dataframe(display_df, use_container_width=True)
                 
                 # Export
                 csv = df.to_csv(index=False)
@@ -1445,7 +1448,7 @@ with tab3:
         st.info("No clicks recorded yet. Share your links to start tracking!")
 
 # ============================================================================
-# REDIRECT HANDLER - This runs when someone clicks a short link
+# FIXED REDIRECT HANDLER - This runs when someone clicks a short link
 # ============================================================================
 short_code = None
 
@@ -1454,19 +1457,22 @@ if 'go' in st.query_params:
 elif 'id' in st.query_params:
     short_code = st.query_params['id']
 
+# IMPORTANT: This must run before any other UI elements
 if short_code:
     try:
         # Try to get by short_code first
-        c.execute("SELECT original_url FROM links WHERE short_code=?", (short_code,))
+        c.execute("SELECT id, original_url, clicks FROM links WHERE short_code=?", (short_code,))
         result = c.fetchone()
         
         # If not found, try by id (for backward compatibility)
         if not result:
-            c.execute("SELECT original_url FROM links WHERE id=?", (short_code,))
+            c.execute("SELECT id, original_url, clicks FROM links WHERE id=?", (short_code,))
             result = c.fetchone()
         
         if result:
-            original_url = result[0]
+            link_id = result[0]
+            original_url = result[1]
+            current_clicks = result[2]
             
             # Get accurate geolocation
             geo_data = get_accurate_geo_info()
@@ -1475,21 +1481,20 @@ if short_code:
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             ua_info = parse_user_agent_accurate(user_agent_string)
             
-            # Get local time
+            # Get local time for click timestamp
             click_time = get_local_time()
             
-            # Get link_id
-            c.execute("SELECT id FROM links WHERE short_code=? OR id=?", (short_code, short_code))
-            link_id_result = c.fetchone()
-            link_id = link_id_result[0] if link_id_result else short_code
-            
-            # Generate session ID
+            # Generate session ID for unique visitor tracking
             session_id = hashlib.md5(
                 f"{geo_data['ip']}{short_code}{datetime.now().strftime('%Y-%m-%d')}".encode()
             ).hexdigest()
             
-            # Record click with safe insert
+            # Get referrer
+            referrer = st.query_params.get('referrer', 'Direct')
+            
+            # ===== RECORD THE CLICK =====
             try:
+                # Insert click record
                 c.execute("""
                     INSERT INTO clicks (
                         link_id, short_code, timestamp, ip_address, country, city, 
@@ -1499,16 +1504,21 @@ if short_code:
                     link_id, short_code, click_time, geo_data['ip'],
                     geo_data['country'], geo_data['city'],
                     ua_info['device_type'], ua_info['browser'],
-                    ua_info['os'], st.query_params.get('referrer', 'Direct'),
-                    user_agent_string, session_id
+                    ua_info['os'], referrer, user_agent_string, session_id
                 ))
                 
-                c.execute("UPDATE links SET clicks = clicks + 1 WHERE id=?", (link_id,))
+                # Update click count in links table
+                c.execute("UPDATE links SET clicks = clicks + 1 WHERE id = ?", (link_id,))
                 conn.commit()
+                
+                print(f"✅ Click recorded for {short_code} - Total clicks: {current_clicks + 1}")
+                
             except Exception as e:
-                pass
+                print(f"Error recording click: {e}")
+                conn.rollback()
             
-            # Redirect page
+            # ===== REDIRECT TO ORIGINAL URL =====
+            # Use HTML meta refresh for reliable redirect
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -1520,40 +1530,56 @@ if short_code:
                         margin: 0;
                         padding: 0;
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        background: linear-gradient(135deg, #0a2c4e 0%, #1e4a7a 100%);
+                        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
                         color: white;
                         min-height: 100vh;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                     }}
-                    .container {{ text-align: center; padding: 2rem; max-width: 500px; }}
+                    .container {{
+                        text-align: center;
+                        padding: 2rem;
+                        max-width: 500px;
+                    }}
                     .card {{
-                        background: rgba(255,255,255,0.1);
+                        background: rgba(255, 255, 255, 0.1);
                         backdrop-filter: blur(10px);
                         padding: 2rem;
-                        border-radius: 20px;
+                        border-radius: 8px;
                         margin: 2rem 0;
                     }}
                     .loader {{
-                        width: 50px;
-                        height: 50px;
-                        border: 5px solid rgba(255,255,255,0.3);
-                        border-top: 5px solid white;
+                        width: 40px;
+                        height: 40px;
+                        border: 3px solid rgba(255,255,255,0.3);
+                        border-top: 3px solid white;
                         border-radius: 50%;
                         animation: spin 1s linear infinite;
                         margin: 2rem auto;
                     }}
-                    @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                    .location {{
+                        display: flex;
+                        justify-content: center;
+                        gap: 1rem;
+                        margin: 1rem 0;
+                    }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h1 style="font-size: 3rem;">🔗</h1>
-                    <h2>URL Shortener</h2>
+                    <h1 style="font-size: 3rem; margin:0;">🔗</h1>
+                    <h2 style="font-weight:400; margin:0.5rem 0;">URL Shortener</h2>
                     <div class="card">
-                        <p style="margin:0;"><strong>{geo_data['country']}</strong> • <strong>{geo_data['city']}</strong></p>
-                        <p style="margin:0.5rem 0 0 0;">{ua_info['device_type']} • {ua_info['browser']}</p>
+                        <div class="location">
+                            <span>🌍 {geo_data['country']}</span>
+                            <span>📱 {ua_info['device_type']}</span>
+                        </div>
+                        <p style="margin:0.5rem 0 0 0; font-size:0.9rem; opacity:0.8;">{geo_data['city']} · {ua_info['browser']}</p>
                     </div>
                     <div class="loader"></div>
                     <p>Redirecting you to your destination...</p>
@@ -1562,14 +1588,17 @@ if short_code:
             </html>
             """
             
+            # Clear any existing content and show redirect page
             st.markdown(html_content, unsafe_allow_html=True)
+            
+            # Stop further Streamlit execution
             st.stop()
             
         else:
-            st.error("Link not found")
+            st.error("❌ Link not found. Please check the URL.")
             
     except Exception as e:
-        st.error(f"Error: {str(e)}")
+        st.error(f"An error occurred: {str(e)}")
         if 'original_url' in locals() and original_url:
             st.markdown(f'<meta http-equiv="refresh" content="2;url={original_url}">', unsafe_allow_html=True)
 

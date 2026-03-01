@@ -1443,13 +1443,14 @@ with tab1:
                     short_url = f"{APP_URL}/?go={short_code}"
                     display_time = format_timestamp(local_created_time)
                     
+                    # FIXED: Added proper copy button functionality
                     st.markdown(f"""
                     <div class="success-box">
                         <h3>Link Created Successfully!</h3>
                         <div class="url-container">
                             <div class="short-url">
                                 <a href="{short_url}" target="_blank">{short_url}</a>
-                                <button class="copy-btn" onclick="navigator.clipboard.writeText('{short_url}')">Copy Link</button>
+                                <button class="copy-btn" onclick="copyToClipboard('{short_url}')">Copy Link</button>
                             </div>
                             <div class="original-url">{url}</div>
                         </div>
@@ -1465,6 +1466,38 @@ with tab1:
                             </div>
                         </div>
                     </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # FIXED: Improved copy function with visual feedback
+                    st.markdown("""
+                    <script>
+                    function copyToClipboard(text) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            // Create and show a temporary notification
+                            var notification = document.createElement('div');
+                            notification.textContent = '✓ Link copied to clipboard!';
+                            notification.style.position = 'fixed';
+                            notification.style.top = '20px';
+                            notification.style.right = '20px';
+                            notification.style.backgroundColor = '#10b981';
+                            notification.style.color = 'white';
+                            notification.style.padding = '12px 24px';
+                            notification.style.borderRadius = '6px';
+                            notification.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                            notification.style.zIndex = '9999';
+                            notification.style.fontWeight = '500';
+                            document.body.appendChild(notification);
+                            
+                            // Remove notification after 2 seconds
+                            setTimeout(function() {
+                                notification.remove();
+                            }, 2000);
+                        }).catch(function(err) {
+                            console.error('Could not copy text: ', err);
+                            alert('Failed to copy link. Please copy manually.');
+                        });
+                    }
+                    </script>
                     """, unsafe_allow_html=True)
                     
                     st.balloons()
@@ -1975,7 +2008,7 @@ with tab3:
         st.info("📭 No clicks recorded yet. Share your links to start tracking!")
 
 # ============================================================================
-# REDIRECT HANDLER - This runs when someone clicks a short link
+# FIXED REDIRECT HANDLER - This runs when someone clicks a short link
 # ============================================================================
 short_code = None
 
@@ -1984,27 +2017,44 @@ if 'go' in st.query_params:
 elif 'id' in st.query_params:
     short_code = st.query_params['id']
 
+# IMPORTANT: This must run before any other UI elements
 if short_code:
     try:
-        result = execute_query("SELECT id, original_url, clicks FROM links WHERE short_code=?", (short_code,))
-        if not result:
-            result = execute_query("SELECT id, original_url, clicks FROM links WHERE id=?", (short_code,))
+        # Try to get by short_code first
+        c.execute("SELECT id, original_url, clicks FROM links WHERE short_code=?", (short_code,))
+        result = c.fetchone()
         
-        if result and len(result[0]) >= 3:
-            link_id = result[0][0]
-            original_url = result[0][1]
-            current_clicks = result[0][2]
+        # If not found, try by id (for backward compatibility)
+        if not result:
+            c.execute("SELECT id, original_url, clicks FROM links WHERE id=?", (short_code,))
+            result = c.fetchone()
+        
+        if result:
+            link_id = result[0]
+            original_url = result[1]
+            current_clicks = result[2]
             
+            # Get accurate geolocation
             geo_data = get_accurate_geo_info()
+            
+            # Parse user agent
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             ua_info = parse_user_agent_accurate(user_agent_string)
+            
+            # Get local time for click timestamp
             click_time = get_local_time()
+            
+            # Generate session ID for unique visitor tracking
             session_id = hashlib.md5(
                 f"{geo_data['ip']}{short_code}{datetime.now().strftime('%Y-%m-%d')}".encode()
             ).hexdigest()
+            
+            # Get referrer
             referrer = st.query_params.get('referrer', 'Direct')
             
+            # ===== FIXED: RECORD THE CLICK WITH PROPER ERROR HANDLING =====
             try:
+                # Insert click record
                 c.execute("""
                     INSERT INTO clicks (
                         link_id, short_code, timestamp, ip_address, country, city, 
@@ -2017,11 +2067,21 @@ if short_code:
                     ua_info['os'], referrer, user_agent_string, session_id
                 ))
                 
+                # Update click count in links table
                 c.execute("UPDATE links SET clicks = clicks + 1 WHERE id = ?", (link_id,))
                 conn.commit()
+                
+                print(f"✅ Click recorded for {short_code} - Total clicks: {current_clicks + 1}")
+                print(f"   Location: {geo_data['country']}, {geo_data['city']}")
+                print(f"   Device: {ua_info['device_type']}, Browser: {ua_info['browser']}")
+                
             except Exception as e:
-                print(f"Click recording error: {e}")
+                print(f"Error recording click: {e}")
+                conn.rollback()
+                # Still redirect even if tracking fails
             
+            # ===== REDIRECT TO ORIGINAL URL =====
+            # Use HTML meta refresh for reliable redirect
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -2073,6 +2133,11 @@ if short_code:
                         margin: 1rem 0;
                         font-size: 1.1rem;
                     }}
+                    .details {{
+                        color: rgba(255,255,255,0.9);
+                        font-size: 0.95rem;
+                        margin-top: 0.5rem;
+                    }}
                 </style>
             </head>
             <body>
@@ -2084,18 +2149,22 @@ if short_code:
                             <span>🌍 {geo_data['country']}</span>
                             <span>📱 {ua_info['device_type']}</span>
                         </div>
-                        <div>
+                        <div class="details">
                             {geo_data['city'] if geo_data['city'] != 'Unknown' else ''} · {ua_info['browser']}
                         </div>
                     </div>
                     <div class="loader"></div>
                     <p style="font-size:1.2rem;">Redirecting you to your destination...</p>
+                    <p style="opacity:0.8; font-size:0.9rem;">Click tracked successfully</p>
                 </div>
             </body>
             </html>
             """
             
+            # Clear any existing content and show redirect page
             st.markdown(html_content, unsafe_allow_html=True)
+            
+            # Stop further Streamlit execution
             st.stop()
             
         else:

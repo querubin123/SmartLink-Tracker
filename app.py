@@ -1033,7 +1033,9 @@ def execute_query(query, params=None):
 def get_single_value(query, params=None, default=0):
     """Get a single value from database"""
     result = execute_query(query, params)
-    return result[0][0] if result and result[0] else default
+    if result and len(result) > 0 and result[0] and len(result[0]) > 0:
+        return result[0][0] if result[0][0] is not None else default
+    return default
 
 @safe_execute(default_return=[])
 def get_all_links():
@@ -1041,7 +1043,10 @@ def get_all_links():
     try:
         return c.execute("SELECT short_code, original_url, created_date, clicks FROM links ORDER BY created_date DESC").fetchall()
     except:
-        return c.execute("SELECT id, original_url, created_date, clicks FROM links ORDER BY created_date DESC").fetchall()
+        try:
+            return c.execute("SELECT id, original_url, created_date, clicks FROM links ORDER BY created_date DESC").fetchall()
+        except:
+            return []
 
 @safe_execute(default_return=None)
 def get_link_by_code(code):
@@ -1068,14 +1073,17 @@ def get_clicks_for_link(link_id, code, start_date=None):
             return c.execute("SELECT * FROM clicks WHERE short_code=? ORDER BY timestamp DESC", (code,)).fetchall()
     except:
         try:
-            if start_date:
-                return c.execute("""
-                    SELECT * FROM clicks 
-                    WHERE link_id=? AND timestamp >= ? 
-                    ORDER BY timestamp DESC
-                """, (link_id, start_date)).fetchall()
+            if link_id:
+                if start_date:
+                    return c.execute("""
+                        SELECT * FROM clicks 
+                        WHERE link_id=? AND timestamp >= ? 
+                        ORDER BY timestamp DESC
+                    """, (link_id, start_date)).fetchall()
+                else:
+                    return c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,)).fetchall()
             else:
-                return c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,)).fetchall()
+                return []
         except:
             return []
 
@@ -1371,15 +1379,41 @@ with tab1:
     with col2:
         st.markdown("### 📈 Quick Stats")
         
-        total_links = get_single_value("SELECT COUNT(*) FROM links", default=0)
-        total_clicks = get_single_value("SELECT COUNT(*) FROM clicks", default=0)
+        # Get stats with safe error handling
+        try:
+            c.execute("SELECT COUNT(*) FROM links")
+            total_links_result = c.fetchone()
+            total_links = total_links_result[0] if total_links_result and total_links_result[0] is not None else 0
+        except:
+            total_links = 0
         
         try:
-            active_links = get_single_value("SELECT COUNT(DISTINCT short_code) FROM clicks", default=0)
+            c.execute("SELECT COUNT(*) FROM clicks")
+            total_clicks_result = c.fetchone()
+            total_clicks = total_clicks_result[0] if total_clicks_result and total_clicks_result[0] is not None else 0
         except:
-            active_links = get_single_value("SELECT COUNT(DISTINCT link_id) FROM clicks", default=0)
+            total_clicks = 0
         
-        ctr = (total_clicks / total_links * 100) if total_links > 0 else 0
+        try:
+            c.execute("SELECT COUNT(DISTINCT short_code) FROM clicks")
+            active_links_result = c.fetchone()
+            active_links = active_links_result[0] if active_links_result and active_links_result[0] is not None else 0
+        except:
+            try:
+                c.execute("SELECT COUNT(DISTINCT link_id) FROM clicks")
+                active_links_result = c.fetchone()
+                active_links = active_links_result[0] if active_links_result and active_links_result[0] is not None else 0
+            except:
+                active_links = 0
+        
+        # Calculate CTR safely
+        if total_links and total_links > 0:
+            try:
+                ctr = (total_clicks / total_links) * 100
+            except:
+                ctr = 0
+        else:
+            ctr = 0
         
         st.markdown(f"""
         <div class="stats-grid">
@@ -1403,238 +1437,368 @@ with tab1:
         """, unsafe_allow_html=True)
 
 # ============================================================================
-# TAB 2: Analytics Dashboard (Enhanced with Error Handling)
+# TAB 2: Analytics Dashboard (Completely Error-Proof)
 # ============================================================================
 with tab2:
     st.markdown("### 📊 Analytics Dashboard")
     st.markdown("*Detailed insights for your shortened links*")
     
-    all_links = get_all_links()
-    
-    if all_links:
-        link_options = {}
-        for link in all_links:
-            if link and len(link) >= 4:
-                display_name = f"🔗 {link[0]} ({link[3]:,} click{'s' if link[3] != 1 else ''})"
-                link_options[display_name] = link[0]
+    try:
+        # Get all links with safe query
+        all_links = []
+        try:
+            c.execute("SELECT short_code, original_url, created_date, clicks FROM links ORDER BY created_date DESC")
+            all_links = c.fetchall()
+        except:
+            try:
+                c.execute("SELECT id, original_url, created_date, clicks FROM links ORDER BY created_date DESC")
+                all_links = c.fetchall()
+            except:
+                all_links = []
         
-        if link_options:
-            selected = st.selectbox("Select a short link to analyze", options=list(link_options.keys()))
-            short_code = link_options[selected]
+        if all_links and len(all_links) > 0:
+            # Link selector
+            link_options = {}
+            for link in all_links:
+                if link and len(link) >= 4:
+                    link_code = str(link[0]) if link[0] is not None else "unknown"
+                    link_clicks = link[3] if link[3] is not None else 0
+                    
+                    # Ensure clicks is a number for formatting
+                    try:
+                        clicks_display = int(link_clicks)
+                    except:
+                        clicks_display = 0
+                    
+                    display_name = f"🔗 {link_code} ({clicks_display:,} click{'s' if clicks_display != 1 else ''})"
+                    link_options[display_name] = link_code
             
-            link = get_link_by_code(short_code)
-            
-            if link and len(link) >= 6:
-                original_url = link[1] if len(link) > 1 else "Unknown"
-                clicks = link[4] if len(link) > 4 else 0
-                created_date = link[5] if len(link) > 5 and link[5] else None
+            if link_options:
+                selected = st.selectbox("Select a short link to analyze", options=list(link_options.keys()))
+                short_code = link_options[selected]
                 
-                created_display = format_timestamp(created_date) if created_date else "Unknown"
+                # Get link details with safe query
+                link = None
+                try:
+                    c.execute("SELECT * FROM links WHERE short_code=?", (short_code,))
+                    link = c.fetchone()
+                except:
+                    try:
+                        c.execute("SELECT * FROM links WHERE id=?", (short_code,))
+                        link = c.fetchone()
+                    except:
+                        link = None
                 
-                st.markdown(f"""
-                <div class="professional-card">
-                    <h4>Link Information</h4>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
-                        <div>
-                            <p><strong>Short Code:</strong> <code>{short_code}</code></p>
-                            <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">Open Link ↗</a></p>
+                if link and len(link) >= 6:
+                    # SAFELY extract values with proper error handling
+                    try:
+                        original_url = str(link[1]) if len(link) > 1 and link[1] is not None else "Unknown"
+                    except:
+                        original_url = "Unknown"
+                    
+                    try:
+                        clicks = link[4] if len(link) > 4 and link[4] is not None else 0
+                        # Ensure clicks is a number
+                        clicks = int(clicks) if clicks is not None else 0
+                    except:
+                        clicks = 0
+                    
+                    try:
+                        created_date = link[5] if len(link) > 5 and link[5] is not None else None
+                    except:
+                        created_date = None
+                    
+                    # Format creation time
+                    created_display = "Unknown"
+                    if created_date:
+                        try:
+                            created_display = format_timestamp(created_date)
+                        except:
+                            created_display = str(created_date)
+                    
+                    # Link info card - FIXED: Properly format clicks
+                    st.markdown(f"""
+                    <div class="professional-card">
+                        <h4>Link Information</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                            <div>
+                                <p><strong>Short Code:</strong> <code>{short_code}</code></p>
+                                <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">Open Link ↗</a></p>
+                            </div>
+                            <div>
+                                <p><strong>Created:</strong> {created_display}</p>
+                                <p><strong>Total Clicks:</strong> {clicks:,}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p><strong>Created:</strong> {created_display}</p>
-                            <p><strong>Total Clicks:</strong> {clicks:,}</p>
-                        </div>
+                        <p><strong>Original URL:</strong> <a href="{original_url}" target="_blank">{str(original_url)[:80]}{'...' if len(str(original_url)) > 80 else ''}</a></p>
                     </div>
-                    <p><strong>Original URL:</strong> <a href="{original_url}" target="_blank">{original_url[:80]}{'...' if len(original_url) > 80 else ''}</a></p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("##### 📅 Select Time Range")
-                time_range = st.radio(
-                    "Time Range",
-                    ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"],
-                    horizontal=True,
-                    key="time_range_analytics"
-                )
-                
-                now = datetime.now(timezone.utc)
-                if time_range == "Last 24 Hours":
-                    start_date = (now - timedelta(days=1)).isoformat()
-                elif time_range == "Last 7 Days":
-                    start_date = (now - timedelta(days=7)).isoformat()
-                elif time_range == "Last 30 Days":
-                    start_date = (now - timedelta(days=30)).isoformat()
-                else:
-                    start_date = None
-                
-                link_id = link[0] if len(link) > 0 else None
-                clicks_data = get_clicks_for_link(link_id, short_code, start_date)
-                
-                if clicks_data:
-                    num_columns = len(clicks_data[0]) if clicks_data else 0
+                    """, unsafe_allow_html=True)
                     
-                    if num_columns >= 15:
-                        df = pd.DataFrame(clicks_data, columns=[
-                            'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
-                            'city', 'region', 'latitude', 'longitude', 'isp', 'device_type', 
-                            'browser', 'browser_version', 'os', 'os_version', 'referrer', 
-                            'user_agent', 'session_id', 'is_unique'
-                        ][:num_columns])
-                    else:
-                        df = pd.DataFrame(clicks_data, columns=[
-                            'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
-                            'city', 'device_type', 'browser', 'os'
-                        ][:num_columns])
-                    
-                    if 'timestamp' in df.columns:
-                        df['display_time'] = df['timestamp'].apply(format_timestamp)
-                    
-                    st.markdown("##### 📊 Key Metrics")
-                    col1, col2, col3, col4 = st.columns(4)
-                    
-                    with col1:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-value">{len(df):,}</div>
-                            <div class="metric-label">Clicks</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        unique_countries = df['country'].nunique() if 'country' in df.columns else 0
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-value">{unique_countries}</div>
-                            <div class="metric-label">Countries</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col3:
-                        unique_visitors = df['session_id'].nunique() if 'session_id' in df.columns else len(df)
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-value">{unique_visitors:,}</div>
-                            <div class="metric-label">Unique Visitors</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col4:
-                        mobile_pct = (df['device_type'] == 'Mobile').mean() * 100 if 'device_type' in df.columns else 0
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-value">{mobile_pct:.1f}%</div>
-                            <div class="metric-label">Mobile</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.markdown("##### 📈 Visual Analytics")
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("###### Clicks Over Time")
-                        if 'timestamp' in df.columns and not df.empty:
-                            df['timestamp_dt'] = pd.to_datetime(df['timestamp'], errors='coerce')
-                            df_clean = df.dropna(subset=['timestamp_dt'])
-                            
-                            if not df_clean.empty:
-                                df_clean['date'] = df_clean['timestamp_dt'].dt.date
-                                timeline = df_clean.groupby('date').size().reset_index(name='count')
-                                
-                                if not timeline.empty:
-                                    fig = px.line(timeline, x='date', y='count', markers=True)
-                                    fig.update_layout(
-                                        height=350, margin=dict(l=40, r=40, t=40, b=40),
-                                        hovermode='x unified', plot_bgcolor='white', paper_bgcolor='white'
-                                    )
-                                    fig.update_traces(line_color='#3182ce', marker_color='#3182ce', line_width=3)
-                                    st.plotly_chart(fig, use_container_width=True)
-                                else:
-                                    st.info("No timeline data")
-                            else:
-                                st.info("No valid timestamp data")
-                    
-                    with col2:
-                        st.markdown("###### Top Countries")
-                        if 'country' in df.columns:
-                            countries = df[df['country'] != 'Unknown']['country'].value_counts().head(10)
-                            if not countries.empty:
-                                fig = px.bar(x=countries.values, y=countries.index, orientation='h')
-                                fig.update_layout(
-                                    height=350, margin=dict(l=40, r=40, t=40, b=40),
-                                    showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
-                                )
-                                fig.update_traces(marker_color='#3182ce')
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.info("No country data")
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("###### Device Types")
-                        if 'device_type' in df.columns:
-                            devices = df['device_type'].value_counts()
-                            if not devices.empty:
-                                fig = px.pie(values=devices.values, names=devices.index, hole=0.4)
-                                fig.update_layout(
-                                    height=350, margin=dict(l=40, r=40, t=60, b=40),
-                                    plot_bgcolor='white', paper_bgcolor='white'
-                                )
-                                fig.update_traces(marker=dict(colors=['#3182ce', '#2c3e50', '#2f855a']))
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.info("No device data")
-                    
-                    with col2:
-                        st.markdown("###### Top Browsers")
-                        if 'browser' in df.columns:
-                            browsers = df[df['browser'] != 'Unknown']['browser'].value_counts().head(5)
-                            if not browsers.empty:
-                                fig = px.bar(x=browsers.values, y=browsers.index, orientation='h')
-                                fig.update_layout(
-                                    height=350, margin=dict(l=40, r=40, t=60, b=40),
-                                    showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
-                                )
-                                fig.update_traces(marker_color='#2f855a')
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.info("No browser data")
-                    
-                    if 'latitude' in df.columns and 'longitude' in df.columns:
-                        map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
-                        if not map_df.empty:
-                            st.markdown("##### 🗺️ Click Locations Map")
-                            st.map(map_df[['latitude', 'longitude']], zoom=1, use_container_width=True)
-                    
-                    st.markdown("##### 📋 Recent Clicks")
-                    display_cols = ['display_time' if 'display_time' in df.columns else 'timestamp']
-                    for col in ['country', 'city', 'device_type', 'browser', 'os']:
-                        if col in df.columns:
-                            display_cols.append(col)
-                    
-                    if display_cols:
-                        display_df = df[display_cols].head(100)
-                        if 'display_time' in display_df.columns:
-                            display_df = display_df.rename(columns={'display_time': 'Time'})
-                        st.dataframe(display_df, use_container_width=True)
-                    
-                    st.markdown("##### 📥 Export Data")
-                    csv = df.to_csv(index=False)
-                    st.download_button(
-                        "📥 Download Full Data as CSV",
-                        csv,
-                        f"{short_code}_analytics.csv",
-                        "text/csv",
-                        use_container_width=True
+                    # Time range filter
+                    st.markdown("##### 📅 Select Time Range")
+                    time_range = st.radio(
+                        "Time Range",
+                        ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"],
+                        horizontal=True,
+                        key=f"time_range_{short_code}"
                     )
                     
+                    # Calculate date filter
+                    now = datetime.now(timezone.utc)
+                    if time_range == "Last 24 Hours":
+                        start_date = (now - timedelta(days=1)).isoformat()
+                    elif time_range == "Last 7 Days":
+                        start_date = (now - timedelta(days=7)).isoformat()
+                    elif time_range == "Last 30 Days":
+                        start_date = (now - timedelta(days=30)).isoformat()
+                    else:
+                        start_date = None
+                    
+                    # Get clicks for this link with safe query
+                    clicks_data = []
+                    try:
+                        link_id = link[0] if len(link) > 0 else None
+                        
+                        if start_date:
+                            try:
+                                c.execute("""
+                                    SELECT * FROM clicks 
+                                    WHERE short_code=? AND timestamp >= ? 
+                                    ORDER BY timestamp DESC
+                                """, (short_code, start_date))
+                                clicks_data = c.fetchall()
+                            except:
+                                if link_id:
+                                    c.execute("""
+                                        SELECT * FROM clicks 
+                                        WHERE link_id=? AND timestamp >= ? 
+                                        ORDER BY timestamp DESC
+                                    """, (link_id, start_date))
+                                    clicks_data = c.fetchall()
+                        else:
+                            try:
+                                c.execute("SELECT * FROM clicks WHERE short_code=? ORDER BY timestamp DESC", (short_code,))
+                                clicks_data = c.fetchall()
+                            except:
+                                if link_id:
+                                    c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,))
+                                    clicks_data = c.fetchall()
+                    except:
+                        clicks_data = []
+                    
+                    if clicks_data and len(clicks_data) > 0:
+                        # Create DataFrame safely
+                        try:
+                            num_columns = len(clicks_data[0]) if clicks_data else 0
+                            
+                            if num_columns >= 15:
+                                df = pd.DataFrame(clicks_data, columns=[
+                                    'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
+                                    'city', 'region', 'latitude', 'longitude', 'isp', 'device_type', 
+                                    'browser', 'browser_version', 'os', 'os_version', 'referrer', 
+                                    'user_agent', 'session_id', 'is_unique'
+                                ][:num_columns])
+                            else:
+                                df = pd.DataFrame(clicks_data, columns=[
+                                    'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
+                                    'city', 'device_type', 'browser', 'os'
+                                ][:num_columns])
+                            
+                            # Format timestamps for display
+                            if 'timestamp' in df.columns:
+                                df['display_time'] = df['timestamp'].apply(lambda x: format_timestamp(x) if x else "Unknown")
+                            
+                            # Summary metrics
+                            st.markdown("##### 📊 Key Metrics")
+                            col1, col2, col3, col4 = st.columns(4)
+                            
+                            with col1:
+                                clicks_count = len(df)
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <div class="metric-value">{clicks_count:,}</div>
+                                    <div class="metric-label">Clicks</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                try:
+                                    unique_countries = df['country'].nunique() if 'country' in df.columns else 0
+                                except:
+                                    unique_countries = 0
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <div class="metric-value">{unique_countries}</div>
+                                    <div class="metric-label">Countries</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col3:
+                                try:
+                                    unique_visitors = df['session_id'].nunique() if 'session_id' in df.columns else len(df)
+                                except:
+                                    unique_visitors = len(df)
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <div class="metric-value">{unique_visitors:,}</div>
+                                    <div class="metric-label">Unique Visitors</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col4:
+                                try:
+                                    if 'device_type' in df.columns:
+                                        mobile_pct = (df['device_type'] == 'Mobile').mean() * 100
+                                    else:
+                                        mobile_pct = 0
+                                except:
+                                    mobile_pct = 0
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <div class="metric-value">{mobile_pct:.1f}%</div>
+                                    <div class="metric-label">Mobile</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            # Charts
+                            st.markdown("##### 📈 Visual Analytics")
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                st.markdown("###### Clicks Over Time")
+                                if 'timestamp' in df.columns and not df.empty:
+                                    try:
+                                        df['timestamp_dt'] = pd.to_datetime(df['timestamp'], errors='coerce')
+                                        df_clean = df.dropna(subset=['timestamp_dt'])
+                                        
+                                        if not df_clean.empty:
+                                            df_clean['date'] = df_clean['timestamp_dt'].dt.date
+                                            timeline = df_clean.groupby('date').size().reset_index(name='count')
+                                            
+                                            if not timeline.empty:
+                                                fig = px.line(timeline, x='date', y='count', markers=True)
+                                                fig.update_layout(
+                                                    height=350, margin=dict(l=40, r=40, t=40, b=40),
+                                                    hovermode='x unified', plot_bgcolor='white', paper_bgcolor='white'
+                                                )
+                                                fig.update_traces(line_color='#3182ce', marker_color='#3182ce', line_width=3)
+                                                st.plotly_chart(fig, use_container_width=True)
+                                            else:
+                                                st.info("No timeline data")
+                                        else:
+                                            st.info("No valid timestamp data")
+                                    except:
+                                        st.info("Error processing timeline")
+                            
+                            with col2:
+                                st.markdown("###### Top Countries")
+                                if 'country' in df.columns:
+                                    try:
+                                        countries = df[df['country'] != 'Unknown']['country'].value_counts().head(10)
+                                        if not countries.empty:
+                                            fig = px.bar(x=countries.values, y=countries.index, orientation='h')
+                                            fig.update_layout(
+                                                height=350, margin=dict(l=40, r=40, t=40, b=40),
+                                                showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
+                                            )
+                                            fig.update_traces(marker_color='#3182ce')
+                                            st.plotly_chart(fig, use_container_width=True)
+                                        else:
+                                            st.info("No country data")
+                                    except:
+                                        st.info("Error processing countries")
+                            
+                            # Second row of charts
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                st.markdown("###### Device Types")
+                                if 'device_type' in df.columns:
+                                    try:
+                                        devices = df['device_type'].value_counts()
+                                        if not devices.empty:
+                                            fig = px.pie(values=devices.values, names=devices.index, hole=0.4)
+                                            fig.update_layout(
+                                                height=350, margin=dict(l=40, r=40, t=60, b=40),
+                                                plot_bgcolor='white', paper_bgcolor='white'
+                                            )
+                                            fig.update_traces(marker=dict(colors=['#3182ce', '#2c3e50', '#2f855a']))
+                                            st.plotly_chart(fig, use_container_width=True)
+                                        else:
+                                            st.info("No device data")
+                                    except:
+                                        st.info("Error processing devices")
+                            
+                            with col2:
+                                st.markdown("###### Top Browsers")
+                                if 'browser' in df.columns:
+                                    try:
+                                        browsers = df[df['browser'] != 'Unknown']['browser'].value_counts().head(5)
+                                        if not browsers.empty:
+                                            fig = px.bar(x=browsers.values, y=browsers.index, orientation='h')
+                                            fig.update_layout(
+                                                height=350, margin=dict(l=40, r=40, t=60, b=40),
+                                                showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
+                                            )
+                                            fig.update_traces(marker_color='#2f855a')
+                                            st.plotly_chart(fig, use_container_width=True)
+                                        else:
+                                            st.info("No browser data")
+                                    except:
+                                        st.info("Error processing browsers")
+                            
+                            # Map if coordinates available
+                            if 'latitude' in df.columns and 'longitude' in df.columns:
+                                try:
+                                    map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
+                                    if not map_df.empty:
+                                        st.markdown("##### 🗺️ Click Locations Map")
+                                        st.map(map_df[['latitude', 'longitude']], zoom=1, use_container_width=True)
+                                except:
+                                    pass
+                            
+                            # Detailed data
+                            st.markdown("##### 📋 Recent Clicks")
+                            display_cols = ['display_time' if 'display_time' in df.columns else 'timestamp']
+                            for col in ['country', 'city', 'device_type', 'browser', 'os']:
+                                if col in df.columns:
+                                    display_cols.append(col)
+                            
+                            if display_cols:
+                                try:
+                                    display_df = df[display_cols].head(100)
+                                    if 'display_time' in display_df.columns:
+                                        display_df = display_df.rename(columns={'display_time': 'Time'})
+                                    st.dataframe(display_df, use_container_width=True)
+                                except:
+                                    st.info("Error displaying data")
+                            
+                            # Export
+                            st.markdown("##### 📥 Export Data")
+                            try:
+                                csv = df.to_csv(index=False)
+                                st.download_button(
+                                    "📥 Download Full Data as CSV",
+                                    csv,
+                                    f"{short_code}_analytics.csv",
+                                    "text/csv",
+                                    use_container_width=True
+                                )
+                            except:
+                                st.info("Error exporting data")
+                            
+                        except Exception as e:
+                            st.error(f"Error processing click data: {str(e)}")
+                    else:
+                        st.info("📭 No clicks recorded for this link yet. Share your link to start tracking!")
                 else:
-                    st.info("📭 No clicks recorded for this link yet. Share your link to start tracking!")
+                    st.error("Could not retrieve link details")
             else:
-                st.error("Could not retrieve link details")
+                st.warning("No valid links found")
         else:
-            st.warning("No valid links found")
-    else:
-        st.info("👋 No links created yet. Go to the 'Create Short Link' tab to create your first tracking link!")
+            st.info("👋 No links created yet. Go to the 'Create Short Link' tab to create your first tracking link!")
+    except Exception as e:
+        st.error(f"An error occurred in the analytics dashboard: {str(e)}")
 
 # ============================================================================
 # TAB 3: Live Click Feed (Enhanced with Error Handling)

@@ -19,6 +19,7 @@ import urllib.parse
 import pytz
 from tzlocal import get_localzone
 import socket
+import traceback
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -27,6 +28,23 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# ============================================================================
+# ERROR HANDLING UTILITY
+# ============================================================================
+
+def safe_execute(default_return=None, error_message="An error occurred"):
+    """Decorator to safely execute functions with error handling"""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(f"Error in {func.__name__}: {str(e)}")
+                print(traceback.format_exc())
+                return default_return
+        return wrapper
+    return decorator
 
 # ============================================================================
 # ENHANCED UI/UX - High Contrast & Professional
@@ -843,66 +861,71 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ============================================================================
-# DATABASE SETUP (Same as before - keep your existing database code)
+# DATABASE SETUP WITH COMPREHENSIVE ERROR HANDLING
 # ============================================================================
 
 @st.cache_resource
 def init_db():
-    if os.getenv('STREAMLIT_SERVER_ADDRESS'):
-        db_path = os.path.join(tempfile.gettempdir(), 'urls.db')
-        os.makedirs(tempfile.gettempdir(), exist_ok=True)
-    else:
-        db_path = 'urls.db'
-    
-    conn = sqlite3.connect(db_path, timeout=30, check_same_thread=False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
-    conn.execute("PRAGMA busy_timeout=30000")
-    
-    c = conn.cursor()
-    
-    # Links table - with all columns
-    c.execute('''CREATE TABLE IF NOT EXISTS links (
-        id TEXT PRIMARY KEY,
-        original_url TEXT NOT NULL,
-        short_code TEXT UNIQUE NOT NULL,
-        title TEXT,
-        clicks INTEGER DEFAULT 0,
-        created_date TEXT,
-        expires_at TEXT,
-        utm_source TEXT,
-        utm_medium TEXT,
-        utm_campaign TEXT,
-        user_id TEXT
-    )''')
-    
-    # Clicks table - with all columns
-    c.execute('''CREATE TABLE IF NOT EXISTS clicks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        link_id TEXT,
-        short_code TEXT,
-        timestamp TEXT,
-        ip_address TEXT,
-        country TEXT,
-        city TEXT,
-        region TEXT,
-        latitude REAL,
-        longitude REAL,
-        isp TEXT,
-        device_type TEXT,
-        browser TEXT,
-        browser_version TEXT,
-        os TEXT,
-        os_version TEXT,
-        referrer TEXT,
-        user_agent TEXT,
-        session_id TEXT,
-        is_unique BOOLEAN DEFAULT 1,
-        FOREIGN KEY (link_id) REFERENCES links (id)
-    )''')
-    
-    conn.commit()
-    return conn
+    """Initialize database with proper error handling"""
+    try:
+        if os.getenv('STREAMLIT_SERVER_ADDRESS'):
+            db_path = os.path.join(tempfile.gettempdir(), 'urls.db')
+            os.makedirs(tempfile.gettempdir(), exist_ok=True)
+        else:
+            db_path = 'urls.db'
+        
+        conn = sqlite3.connect(db_path, timeout=30, check_same_thread=False)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA busy_timeout=30000")
+        
+        c = conn.cursor()
+        
+        # Links table - with all columns
+        c.execute('''CREATE TABLE IF NOT EXISTS links (
+            id TEXT PRIMARY KEY,
+            original_url TEXT NOT NULL,
+            short_code TEXT UNIQUE NOT NULL,
+            title TEXT,
+            clicks INTEGER DEFAULT 0,
+            created_date TEXT,
+            expires_at TEXT,
+            utm_source TEXT,
+            utm_medium TEXT,
+            utm_campaign TEXT,
+            user_id TEXT
+        )''')
+        
+        # Clicks table - with all columns
+        c.execute('''CREATE TABLE IF NOT EXISTS clicks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            link_id TEXT,
+            short_code TEXT,
+            timestamp TEXT,
+            ip_address TEXT,
+            country TEXT,
+            city TEXT,
+            region TEXT,
+            latitude REAL,
+            longitude REAL,
+            isp TEXT,
+            device_type TEXT,
+            browser TEXT,
+            browser_version TEXT,
+            os TEXT,
+            os_version TEXT,
+            referrer TEXT,
+            user_agent TEXT,
+            session_id TEXT,
+            is_unique BOOLEAN DEFAULT 1,
+            FOREIGN KEY (link_id) REFERENCES links (id)
+        )''')
+        
+        conn.commit()
+        return conn
+    except Exception as e:
+        st.error(f"Database initialization failed: {str(e)}")
+        st.stop()
 
 # Initialize database with comprehensive migration
 try:
@@ -910,16 +933,16 @@ try:
     c = conn.cursor()
     
     # ============================================================
-    # COMPREHENSIVE DATABASE MIGRATION
+    # SAFE DATABASE MIGRATION
     # ============================================================
-    def migrate_database():
-        """Add all missing columns to both tables"""
+    def migrate_database_safe():
+        """Safely add missing columns to both tables"""
         try:
-            # ===== MIGRATE CLICKS TABLE =====
+            # Get existing columns
             c.execute("PRAGMA table_info(clicks)")
-            clicks_columns = [column[1] for column in c.fetchall()]
+            clicks_columns = [col[1] for col in c.fetchall()]
             
-            # Columns to add to clicks table
+            # Add missing columns to clicks
             clicks_columns_to_add = {
                 'short_code': 'TEXT',
                 'region': 'TEXT',
@@ -932,19 +955,19 @@ try:
                 'is_unique': 'BOOLEAN DEFAULT 1'
             }
             
-            for column_name, column_type in clicks_columns_to_add.items():
-                if column_name not in clicks_columns:
+            for col_name, col_type in clicks_columns_to_add.items():
+                if col_name not in clicks_columns:
                     try:
-                        c.execute(f"ALTER TABLE clicks ADD COLUMN {column_name} {column_type}")
+                        c.execute(f"ALTER TABLE clicks ADD COLUMN {col_name} {col_type}")
                         conn.commit()
-                    except Exception as e:
+                    except:
                         pass
             
-            # ===== MIGRATE LINKS TABLE =====
+            # Get links columns
             c.execute("PRAGMA table_info(links)")
-            links_columns = [column[1] for column in c.fetchall()]
+            links_columns = [col[1] for col in c.fetchall()]
             
-            # Columns to add to links table
+            # Add missing columns to links
             links_columns_to_add = {
                 'short_code': 'TEXT UNIQUE',
                 'title': 'TEXT',
@@ -955,23 +978,21 @@ try:
                 'user_id': 'TEXT'
             }
             
-            for column_name, column_type in links_columns_to_add.items():
-                if column_name not in links_columns:
+            for col_name, col_type in links_columns_to_add.items():
+                if col_name not in links_columns:
                     try:
-                        if column_name == 'short_code':
+                        if col_name == 'short_code':
                             c.execute("ALTER TABLE links ADD COLUMN short_code TEXT")
                             conn.commit()
-                            # Update short_code from id for existing records
                             c.execute("UPDATE links SET short_code = id WHERE short_code IS NULL")
                             conn.commit()
                         else:
-                            c.execute(f"ALTER TABLE links ADD COLUMN {column_name} {column_type}")
+                            c.execute(f"ALTER TABLE links ADD COLUMN {col_name} {col_type}")
                             conn.commit()
-                    except Exception as e:
+                    except:
                         pass
             
-            # ===== DATA SYNC =====
-            # Sync short_code from links to clicks
+            # Sync data
             try:
                 c.execute("""
                     UPDATE clicks 
@@ -982,96 +1003,130 @@ try:
                     WHERE short_code IS NULL AND link_id IN (SELECT id FROM links)
                 """)
                 conn.commit()
-            except Exception as e:
+            except:
                 pass
-            
+                
         except Exception as e:
-            pass
+            print(f"Migration warning: {e}")
     
     # Run migration
-    migrate_database()
-    
-    # Test database
-    c.execute("SELECT 1")
+    migrate_database_safe()
     
 except Exception as e:
-    st.error(f"Database initialization error: {str(e)}")
+    st.error(f"Database error: {str(e)}")
     st.stop()
 
 # ============================================================================
-# ACCURATE IP AND GEOLOCATION FUNCTIONS (Same as before)
+# SAFE DATABASE QUERY FUNCTIONS
 # ============================================================================
 
+@safe_execute(default_return=None)
+def execute_query(query, params=None):
+    """Safely execute a database query"""
+    if params:
+        c.execute(query, params)
+    else:
+        c.execute(query)
+    return c.fetchall()
+
+@safe_execute(default_return=0)
+def get_single_value(query, params=None, default=0):
+    """Get a single value from database"""
+    result = execute_query(query, params)
+    return result[0][0] if result and result[0] else default
+
+@safe_execute(default_return=[])
+def get_all_links():
+    """Get all links safely"""
+    try:
+        return c.execute("SELECT short_code, original_url, created_date, clicks FROM links ORDER BY created_date DESC").fetchall()
+    except:
+        return c.execute("SELECT id, original_url, created_date, clicks FROM links ORDER BY created_date DESC").fetchall()
+
+@safe_execute(default_return=None)
+def get_link_by_code(code):
+    """Get link by short_code or id"""
+    try:
+        result = c.execute("SELECT * FROM links WHERE short_code=?", (code,)).fetchone()
+        if not result:
+            result = c.execute("SELECT * FROM links WHERE id=?", (code,)).fetchone()
+        return result
+    except:
+        return None
+
+@safe_execute(default_return=[])
+def get_clicks_for_link(link_id, code, start_date=None):
+    """Get clicks for a link safely"""
+    try:
+        if start_date:
+            return c.execute("""
+                SELECT * FROM clicks 
+                WHERE short_code=? AND timestamp >= ? 
+                ORDER BY timestamp DESC
+            """, (code, start_date)).fetchall()
+        else:
+            return c.execute("SELECT * FROM clicks WHERE short_code=? ORDER BY timestamp DESC", (code,)).fetchall()
+    except:
+        try:
+            if start_date:
+                return c.execute("""
+                    SELECT * FROM clicks 
+                    WHERE link_id=? AND timestamp >= ? 
+                    ORDER BY timestamp DESC
+                """, (link_id, start_date)).fetchall()
+            else:
+                return c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,)).fetchall()
+        except:
+            return []
+
+# ============================================================================
+# ACCURATE IP AND GEOLOCATION FUNCTIONS
+# ============================================================================
+
+@safe_execute(default_return=None)
 def get_real_client_ip():
-    """
-    Get the real client IP address from various headers
-    This is crucial for accurate geolocation
-    """
-    # List of headers to check in order of preference
+    """Get the real client IP address from various headers"""
     headers_to_check = [
-        'X-Forwarded-For',
-        'X-Real-IP',
-        'CF-Connecting-IP',  # Cloudflare
-        'True-Client-IP',
-        'HTTP_X_FORWARDED_FOR',
-        'HTTP_X_REAL_IP',
-        'HTTP_CF_CONNECTING_IP',
-        'REMOTE_ADDR'
+        'X-Forwarded-For', 'X-Real-IP', 'CF-Connecting-IP',
+        'True-Client-IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP',
+        'HTTP_CF_CONNECTING_IP', 'REMOTE_ADDR'
     ]
     
-    # Check each header in st.query_params
     for header in headers_to_check:
         if header in st.query_params:
             ip_value = st.query_params[header]
-            # X-Forwarded-For can contain multiple IPs, take the first one
             if ',' in ip_value:
                 ip_value = ip_value.split(',')[0].strip()
-            # Validate it looks like an IP
-            if ip_value and ip_value != '127.0.0.1' and ip_value != '::1':
+            if ip_value and ip_value not in ['127.0.0.1', '::1']:
                 return ip_value
     
-    # If no headers found, try to get from request context
-    try:
-        host = os.environ.get('REMOTE_ADDR', '')
-        if host and host != '127.0.0.1':
-            return host
-    except:
-        pass
-    
-    # Last resort - make a request to a service that echoes the IP
     try:
         response = requests.get('https://api.ipify.org', timeout=3)
         if response.status_code == 200:
-            external_ip = response.text.strip()
-            return external_ip
+            return response.text.strip()
     except:
         pass
     
     return None
 
+@safe_execute(default_return={
+    'country': 'Unknown', 'city': 'Unknown', 'region': 'Unknown',
+    'latitude': 0.0, 'longitude': 0.0, 'isp': 'Unknown', 'ip': 'Unknown'
+})
 def get_accurate_geo_info():
-    """
-    Get accurate geolocation data for the real client IP
-    Uses multiple APIs with fallbacks
-    """
-    
-    # First, get the real client IP
+    """Get accurate geolocation data with multiple fallbacks"""
     client_ip = get_real_client_ip()
     
     geo_data = {
-        'country': 'Unknown',
-        'city': 'Unknown',
-        'region': 'Unknown',
-        'latitude': 0.0,
-        'longitude': 0.0,
-        'isp': 'Unknown',
+        'country': 'Unknown', 'city': 'Unknown', 'region': 'Unknown',
+        'latitude': 0.0, 'longitude': 0.0, 'isp': 'Unknown',
         'ip': client_ip if client_ip else 'Unknown'
     }
     
     if not client_ip:
         return geo_data
     
-    # PRIMARY API: ip-api.com (fast, free, no API key needed)
+    # Try ip-api.com
     try:
         response = requests.get(
             f'http://ip-api.com/json/{client_ip}?fields=status,country,city,regionName,lat,lon,isp,query',
@@ -1090,10 +1145,10 @@ def get_accurate_geo_info():
                     'ip': data.get('query', client_ip)
                 })
                 return geo_data
-    except Exception as e:
+    except:
         pass
     
-    # SECONDARY API: ipapi.co
+    # Try ipapi.co
     try:
         response = requests.get(f'https://ipapi.co/{client_ip}/json/', timeout=5)
         if response.status_code == 200:
@@ -1109,34 +1164,31 @@ def get_accurate_geo_info():
                     'ip': client_ip
                 })
                 return geo_data
-    except Exception as e:
+    except:
         pass
     
     return geo_data
 
 # ============================================================================
-# ACCURATE TIME FUNCTIONS (Same as before)
+# ACCURATE TIME FUNCTIONS
 # ============================================================================
 
+@safe_execute(default_return=datetime.now(timezone.utc).isoformat())
 def get_local_time():
-    """
-    Get current time in local timezone with proper timezone handling
-    """
+    """Get current time in local timezone"""
     try:
         local_tz = get_localzone()
-        local_time = datetime.now(local_tz)
-        return local_time.isoformat()
-    except Exception as e:
+        return datetime.now(local_tz).isoformat()
+    except:
         return datetime.now(timezone.utc).isoformat()
 
+@safe_execute(default_return="Unknown")
 def format_timestamp(iso_timestamp):
-    """
-    Convert ISO timestamp to local time for display with proper formatting
-    """
+    """Convert ISO timestamp to local time for display"""
+    if not iso_timestamp:
+        return "Unknown"
+    
     try:
-        if not iso_timestamp:
-            return "Unknown"
-        
         if iso_timestamp.endswith('Z'):
             iso_timestamp = iso_timestamp.replace('Z', '+00:00')
         
@@ -1148,13 +1200,14 @@ def format_timestamp(iso_timestamp):
                 dt = dt.replace(tzinfo=timezone.utc)
             local_dt = dt.astimezone(local_tz)
             return local_dt.strftime('%Y-%m-%d %H:%M:%S %Z')
-        except Exception as e:
+        except:
             return dt.strftime('%Y-%m-%d %H:%M:%S')
-    except Exception as e:
+    except:
         return iso_timestamp
 
-# Parse user agent accurately
+@safe_execute(default_return={'device_type': 'Unknown', 'browser': 'Unknown', 'browser_version': 'Unknown', 'os': 'Unknown', 'os_version': 'Unknown'})
 def parse_user_agent_accurate(user_agent_string):
+    """Parse user agent accurately"""
     try:
         ua = parse(user_agent_string)
         return {
@@ -1166,19 +1219,18 @@ def parse_user_agent_accurate(user_agent_string):
         }
     except:
         return {
-            'device_type': 'Unknown',
-            'browser': 'Unknown',
-            'browser_version': 'Unknown',
-            'os': 'Unknown',
-            'os_version': 'Unknown'
+            'device_type': 'Unknown', 'browser': 'Unknown',
+            'browser_version': 'Unknown', 'os': 'Unknown', 'os_version': 'Unknown'
         }
 
-# Function to generate short code
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
 def generate_short_code(length=6):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
 
-# Function to validate URL
 def validate_url(url):
     if not url:
         return url
@@ -1192,7 +1244,7 @@ def validate_url(url):
 tab1, tab2, tab3 = st.tabs(["🔗 Create Short Link", "📊 Analytics Dashboard", "🔄 Live Click Feed"])
 
 # ============================================================================
-# TAB 1: Create Short Link (Enhanced)
+# TAB 1: Create Short Link (Enhanced with Error Handling)
 # ============================================================================
 with tab1:
     st.markdown("### ✨ Create New Short Link")
@@ -1202,21 +1254,19 @@ with tab1:
     
     with col1:
         with st.form("create_link"):
-            # Main URL input
             url = st.text_input(
                 "Enter your long URL",
                 placeholder="https://example.com/very/long/path?with=parameters",
                 help="Paste the URL you want to shorten and track"
             )
             
-            # Advanced options
             with st.expander("⚙️ Advanced Options", expanded=False):
                 col_a, col_b = st.columns(2)
                 with col_a:
                     custom_code = st.text_input(
                         "Custom short code (optional)",
                         placeholder="my-campaign",
-                        help="Choose a memorable short code (letters, numbers, hyphens only)"
+                        help="Choose a memorable short code"
                     )
                 with col_b:
                     expires_in = st.selectbox(
@@ -1227,72 +1277,54 @@ with tab1:
                     )
                 
                 st.markdown("##### 📊 UTM Campaign Parameters")
-                st.markdown("*Track your marketing campaigns*")
                 col_c, col_d, col_e = st.columns(3)
                 with col_c:
-                    utm_source = st.text_input(
-                        "Source", 
-                        placeholder="facebook",
-                        help="Campaign source (e.g., facebook, newsletter)"
-                    )
+                    utm_source = st.text_input("Source", placeholder="facebook")
                 with col_d:
-                    utm_medium = st.text_input(
-                        "Medium", 
-                        placeholder="social",
-                        help="Campaign medium (e.g., social, email)"
-                    )
+                    utm_medium = st.text_input("Medium", placeholder="social")
                 with col_e:
-                    utm_campaign = st.text_input(
-                        "Campaign", 
-                        placeholder="summer2024",
-                        help="Campaign name (e.g., summer_sale)"
-                    )
+                    utm_campaign = st.text_input("Campaign", placeholder="summer2024")
             
             submit = st.form_submit_button("🚀 Generate Short Link", use_container_width=True)
             
             if submit and url:
-                # Validate and clean URL
-                url = validate_url(url)
-                
-                # Add UTM parameters
-                if utm_source or utm_medium or utm_campaign:
-                    separator = '&' if '?' in url else '?'
-                    utm_parts = []
-                    if utm_source:
-                        utm_parts.append(f"utm_source={utm_source.replace(' ', '_')}")
-                    if utm_medium:
-                        utm_parts.append(f"utm_medium={utm_medium.replace(' ', '_')}")
-                    if utm_campaign:
-                        utm_parts.append(f"utm_campaign={utm_campaign.replace(' ', '_')}")
-                    if utm_parts:
-                        url = f"{url}{separator}{'&'.join(utm_parts)}"
-                
-                # Generate or use custom code
-                if custom_code:
-                    short_code = re.sub(r'[^a-zA-Z0-9-]', '', custom_code).lower()
-                else:
-                    short_code = generate_short_code()
-                    # Ensure uniqueness
-                    max_attempts = 5
-                    attempts = 0
-                    while attempts < max_attempts:
-                        c.execute("SELECT id FROM links WHERE short_code=?", (short_code,))
-                        if not c.fetchone():
-                            break
-                        short_code = generate_short_code()
-                        attempts += 1
-                
-                # Calculate expiration
-                expires_at = None
-                if expires_in != "Never":
-                    days = int(expires_in.split()[0])
-                    expires_at = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
-                
-                # Get local time for creation
-                local_created_time = get_local_time()
-                
-                # Insert into database
                 try:
+                    url = validate_url(url)
+                    
+                    # Add UTM parameters
+                    if utm_source or utm_medium or utm_campaign:
+                        separator = '&' if '?' in url else '?'
+                        utm_parts = []
+                        if utm_source:
+                            utm_parts.append(f"utm_source={utm_source.replace(' ', '_')}")
+                        if utm_medium:
+                            utm_parts.append(f"utm_medium={utm_medium.replace(' ', '_')}")
+                        if utm_campaign:
+                            utm_parts.append(f"utm_campaign={utm_campaign.replace(' ', '_')}")
+                        if utm_parts:
+                            url = f"{url}{separator}{'&'.join(utm_parts)}"
+                    
+                    # Generate or use custom code
+                    if custom_code:
+                        short_code = re.sub(r'[^a-zA-Z0-9-]', '', custom_code).lower()
+                    else:
+                        short_code = generate_short_code()
+                        max_attempts = 5
+                        for attempt in range(max_attempts):
+                            existing = get_link_by_code(short_code)
+                            if not existing:
+                                break
+                            short_code = generate_short_code()
+                    
+                    # Calculate expiration
+                    expires_at = None
+                    if expires_in != "Never":
+                        days = int(expires_in.split()[0])
+                        expires_at = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
+                    
+                    local_created_time = get_local_time()
+                    
+                    # Insert into database
                     link_id = hashlib.md5(f"{short_code}{datetime.now()}".encode()).hexdigest()[:12]
                     c.execute("""
                         INSERT INTO links (id, original_url, short_code, created_date, expires_at, 
@@ -1303,11 +1335,8 @@ with tab1:
                     conn.commit()
                     
                     short_url = f"{APP_URL}/?go={short_code}"
-                    
-                    # Format the creation time for display
                     display_time = format_timestamp(local_created_time)
                     
-                    # Success message with clickable link
                     st.markdown(f"""
                     <div class="success-box">
                         <h3>Link Created Successfully!</h3>
@@ -1342,29 +1371,15 @@ with tab1:
     with col2:
         st.markdown("### 📈 Quick Stats")
         
-        # Get stats with safe queries
-        try:
-            c.execute("SELECT COUNT(*) FROM links")
-            total_links = c.fetchone()[0]
-        except:
-            total_links = 0
+        total_links = get_single_value("SELECT COUNT(*) FROM links", default=0)
+        total_clicks = get_single_value("SELECT COUNT(*) FROM clicks", default=0)
         
         try:
-            c.execute("SELECT COUNT(*) FROM clicks")
-            total_clicks = c.fetchone()[0]
+            active_links = get_single_value("SELECT COUNT(DISTINCT short_code) FROM clicks", default=0)
         except:
-            total_clicks = 0
+            active_links = get_single_value("SELECT COUNT(DISTINCT link_id) FROM clicks", default=0)
         
-        try:
-            c.execute("SELECT COUNT(DISTINCT short_code) FROM clicks")
-            active_links = c.fetchone()[0]
-        except:
-            # Fallback if short_code doesn't exist
-            try:
-                c.execute("SELECT COUNT(DISTINCT link_id) FROM clicks")
-                active_links = c.fetchone()[0]
-            except:
-                active_links = 0
+        ctr = (total_clicks / total_links * 100) if total_links > 0 else 0
         
         st.markdown(f"""
         <div class="stats-grid">
@@ -1381,421 +1396,312 @@ with tab1:
                 <div class="metric-label">Active Links</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">{((total_clicks/total_links)*100 if total_links > 0 else 0):.1f}%</div>
+                <div class="metric-value">{ctr:.1f}%</div>
                 <div class="metric-label">CTR</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
 # ============================================================================
-# TAB 2: Analytics Dashboard (Enhanced)
+# TAB 2: Analytics Dashboard (Enhanced with Error Handling)
 # ============================================================================
 with tab2:
     st.markdown("### 📊 Analytics Dashboard")
     st.markdown("*Detailed insights for your shortened links*")
     
-    # Get all links with safe query
-    try:
-        c.execute("SELECT short_code, original_url, created_date, clicks FROM links ORDER BY created_date DESC")
-        all_links = c.fetchall()
-    except:
-        # Fallback if short_code doesn't exist
-        try:
-            c.execute("SELECT id, original_url, created_date, clicks FROM links ORDER BY created_date DESC")
-            all_links = [(row[0], row[1], row[2], row[3]) for row in c.fetchall()]
-        except:
-            all_links = []
+    all_links = get_all_links()
     
     if all_links:
-        # Link selector
         link_options = {}
         for link in all_links:
-            display_name = f"🔗 {link[0]} ({link[3]:,} click{'s' if link[3] != 1 else ''})"
-            link_options[display_name] = link[0]
+            if link and len(link) >= 4:
+                display_name = f"🔗 {link[0]} ({link[3]:,} click{'s' if link[3] != 1 else ''})"
+                link_options[display_name] = link[0]
         
-        selected = st.selectbox("Select a short link to analyze", options=list(link_options.keys()))
-        short_code = link_options[selected]
-        
-        # Get link details with safe query
-        try:
-            c.execute("SELECT * FROM links WHERE short_code=?", (short_code,))
-            link = c.fetchone()
-        except:
-            # Fallback using id
-            c.execute("SELECT * FROM links WHERE id=?", (short_code,))
-            link = c.fetchone()
-        
-        if link:
-            # Format creation time for display
-            created_display = format_timestamp(link[5]) if len(link) > 5 and link[5] else "Unknown"
+        if link_options:
+            selected = st.selectbox("Select a short link to analyze", options=list(link_options.keys()))
+            short_code = link_options[selected]
             
-            # Link info card
-            st.markdown(f"""
-            <div class="professional-card">
-                <h4>Link Information</h4>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
-                    <div>
-                        <p><strong>Short Code:</strong> <code>{short_code}</code></p>
-                        <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">Open Link ↗</a></p>
+            link = get_link_by_code(short_code)
+            
+            if link and len(link) >= 6:
+                original_url = link[1] if len(link) > 1 else "Unknown"
+                clicks = link[4] if len(link) > 4 else 0
+                created_date = link[5] if len(link) > 5 and link[5] else None
+                
+                created_display = format_timestamp(created_date) if created_date else "Unknown"
+                
+                st.markdown(f"""
+                <div class="professional-card">
+                    <h4>Link Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                        <div>
+                            <p><strong>Short Code:</strong> <code>{short_code}</code></p>
+                            <p><strong>Short URL:</strong> <a href="{APP_URL}/?go={short_code}" target="_blank">Open Link ↗</a></p>
+                        </div>
+                        <div>
+                            <p><strong>Created:</strong> {created_display}</p>
+                            <p><strong>Total Clicks:</strong> {clicks:,}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p><strong>Created:</strong> {created_display}</p>
-                        <p><strong>Total Clicks:</strong> {link[4] if len(link) > 4 else 0:,}</p>
-                    </div>
+                    <p><strong>Original URL:</strong> <a href="{original_url}" target="_blank">{original_url[:80]}{'...' if len(original_url) > 80 else ''}</a></p>
                 </div>
-                <p><strong>Original URL:</strong> <a href="{link[1]}" target="_blank">{link[1][:80]}{'...' if len(link[1]) > 80 else ''}</a></p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Time range filter
-            st.markdown("##### 📅 Select Time Range")
-            time_range = st.radio(
-                "Time Range",
-                ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"],
-                horizontal=True
-            )
-            
-            # Calculate date filter
-            now = datetime.now(timezone.utc)
-            if time_range == "Last 24 Hours":
-                start_date = (now - timedelta(days=1)).isoformat()
-            elif time_range == "Last 7 Days":
-                start_date = (now - timedelta(days=7)).isoformat()
-            elif time_range == "Last 30 Days":
-                start_date = (now - timedelta(days=30)).isoformat()
-            else:
-                start_date = None
-            
-            # Get clicks for this link with safe query
-            clicks_data = []
-            try:
-                if start_date:
-                    c.execute("""
-                        SELECT * FROM clicks 
-                        WHERE short_code=? AND timestamp >= ? 
-                        ORDER BY timestamp DESC
-                    """, (short_code, start_date))
-                else:
-                    c.execute("SELECT * FROM clicks WHERE short_code=? ORDER BY timestamp DESC", (short_code,))
-                clicks_data = c.fetchall()
-            except:
-                # Fallback using link_id
-                try:
-                    # Get link_id first
-                    c.execute("SELECT id FROM links WHERE short_code=?", (short_code,))
-                    link_id_result = c.fetchone()
-                    if link_id_result:
-                        link_id = link_id_result[0]
-                        if start_date:
-                            c.execute("""
-                                SELECT * FROM clicks 
-                                WHERE link_id=? AND timestamp >= ? 
-                                ORDER BY timestamp DESC
-                            """, (link_id, start_date))
-                        else:
-                            c.execute("SELECT * FROM clicks WHERE link_id=? ORDER BY timestamp DESC", (link_id,))
-                        clicks_data = c.fetchall()
-                except:
-                    clicks_data = []
-            
-            if clicks_data:
-                # Determine columns from the data
-                num_columns = len(clicks_data[0]) if clicks_data else 0
+                """, unsafe_allow_html=True)
                 
-                # Create DataFrame with appropriate columns
-                if num_columns >= 15:
-                    df = pd.DataFrame(clicks_data, columns=[
-                        'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
-                        'city', 'region', 'latitude', 'longitude', 'isp', 'device_type', 
-                        'browser', 'browser_version', 'os', 'os_version', 'referrer', 
-                        'user_agent', 'session_id', 'is_unique'
-                    ][:num_columns])
-                else:
-                    # Fallback with fewer columns
-                    df = pd.DataFrame(clicks_data, columns=[
-                        'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
-                        'city', 'device_type', 'browser', 'os'
-                    ][:num_columns])
-                
-                # Format timestamps for display
-                if 'timestamp' in df.columns:
-                    df['display_time'] = df['timestamp'].apply(format_timestamp)
-                
-                # Summary metrics
-                st.markdown("##### 📊 Key Metrics")
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="metric-value">{len(df):,}</div>
-                        <div class="metric-label">Clicks</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    if 'country' in df.columns:
-                        unique_countries = df['country'].nunique()
-                    else:
-                        unique_countries = 0
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="metric-value">{unique_countries}</div>
-                        <div class="metric-label">Countries</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    if 'session_id' in df.columns:
-                        unique_visitors = df['session_id'].nunique()
-                    else:
-                        unique_visitors = len(df)
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="metric-value">{unique_visitors:,}</div>
-                        <div class="metric-label">Unique Visitors</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col4:
-                    if 'device_type' in df.columns:
-                        mobile_pct = (df['device_type'] == 'Mobile').mean() * 100
-                    else:
-                        mobile_pct = 0
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="metric-value">{mobile_pct:.1f}%</div>
-                        <div class="metric-label">Mobile</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Charts
-                st.markdown("##### 📈 Visual Analytics")
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("###### Clicks Over Time")
-                    if 'timestamp' in df.columns and not df.empty:
-                        # Convert timestamp strings to datetime objects safely
-                        df['timestamp_dt'] = pd.to_datetime(df['timestamp'], errors='coerce')
-                        # Drop rows with invalid timestamps
-                        df_clean = df.dropna(subset=['timestamp_dt'])
-                        
-                        if not df_clean.empty:
-                            # Extract date safely
-                            df_clean['date'] = df_clean['timestamp_dt'].dt.date
-                            timeline = df_clean.groupby('date').size().reset_index(name='count')
-                            
-                            if not timeline.empty:
-                                fig = px.line(timeline, x='date', y='count', markers=True)
-                                fig.update_layout(
-                                    height=350,
-                                    margin=dict(l=40, r=40, t=40, b=40),
-                                    hovermode='x unified',
-                                    plot_bgcolor='white',
-                                    paper_bgcolor='white',
-                                    title="Click Timeline"
-                                )
-                                fig.update_traces(line_color='#3182ce', marker_color='#3182ce', line_width=3)
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.info("No timeline data available")
-                        else:
-                            st.info("No valid timestamp data")
-                    else:
-                        st.info("No timeline data available")
-                
-                with col2:
-                    st.markdown("###### Top Countries")
-                    if 'country' in df.columns:
-                        # Filter out unknown countries
-                        countries = df[df['country'] != 'Unknown']['country'].value_counts().head(10)
-                        if not countries.empty:
-                            fig = px.bar(
-                                x=countries.values, 
-                                y=countries.index, 
-                                orientation='h',
-                                labels={'x': 'Clicks', 'y': 'Country'}
-                            )
-                            fig.update_layout(
-                                height=350,
-                                margin=dict(l=40, r=40, t=40, b=40),
-                                showlegend=False,
-                                plot_bgcolor='white',
-                                paper_bgcolor='white',
-                                title="Click Distribution by Country"
-                            )
-                            fig.update_traces(marker_color='#3182ce')
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.info("No country data available")
-                    else:
-                        st.info("No country data available")
-                
-                # Second row of charts
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("###### Device Types")
-                    if 'device_type' in df.columns:
-                        devices = df['device_type'].value_counts()
-                        if not devices.empty:
-                            fig = px.pie(
-                                values=devices.values, 
-                                names=devices.index, 
-                                hole=0.4,
-                                title="Device Breakdown"
-                            )
-                            fig.update_layout(
-                                height=350,
-                                margin=dict(l=40, r=40, t=60, b=40),
-                                plot_bgcolor='white',
-                                paper_bgcolor='white'
-                            )
-                            fig.update_traces(marker=dict(colors=['#3182ce', '#2c3e50', '#2f855a']))
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.info("No device data available")
-                    else:
-                        st.info("No device data available")
-                
-                with col2:
-                    st.markdown("###### Top Browsers")
-                    if 'browser' in df.columns:
-                        browsers = df[df['browser'] != 'Unknown']['browser'].value_counts().head(5)
-                        if not browsers.empty:
-                            fig = px.bar(
-                                x=browsers.values, 
-                                y=browsers.index, 
-                                orientation='h',
-                                labels={'x': 'Clicks', 'y': 'Browser'}
-                            )
-                            fig.update_layout(
-                                height=350,
-                                margin=dict(l=40, r=40, t=60, b=40),
-                                showlegend=False,
-                                plot_bgcolor='white',
-                                paper_bgcolor='white',
-                                title="Browser Distribution"
-                            )
-                            fig.update_traces(marker_color='#2f855a')
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.info("No browser data available")
-                    else:
-                        st.info("No browser data available")
-                
-                # Map if coordinates available
-                if 'latitude' in df.columns and 'longitude' in df.columns:
-                    map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
-                    if not map_df.empty:
-                        st.markdown("##### 🗺️ Click Locations Map")
-                        st.map(map_df[['latitude', 'longitude']], zoom=1, use_container_width=True)
-                
-                # Detailed data
-                st.markdown("##### 📋 Recent Clicks")
-                display_cols = ['display_time' if 'display_time' in df.columns else 'timestamp']
-                display_cols.append('country') if 'country' in df.columns else None
-                display_cols.append('city') if 'city' in df.columns else None
-                display_cols.append('device_type') if 'device_type' in df.columns else None
-                display_cols.append('browser') if 'browser' in df.columns else None
-                display_cols.append('os') if 'os' in df.columns else None
-                
-                if display_cols:
-                    display_df = df[display_cols].head(100)
-                    if 'display_time' in display_df.columns:
-                        display_df = display_df.rename(columns={'display_time': 'Time'})
-                    st.dataframe(display_df, use_container_width=True)
-                
-                # Export
-                st.markdown("##### 📥 Export Data")
-                csv = df.to_csv(index=False)
-                st.download_button(
-                    "📥 Download Full Data as CSV",
-                    csv,
-                    f"{short_code}_analytics.csv",
-                    "text/csv",
-                    use_container_width=True
+                st.markdown("##### 📅 Select Time Range")
+                time_range = st.radio(
+                    "Time Range",
+                    ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"],
+                    horizontal=True,
+                    key="time_range_analytics"
                 )
                 
+                now = datetime.now(timezone.utc)
+                if time_range == "Last 24 Hours":
+                    start_date = (now - timedelta(days=1)).isoformat()
+                elif time_range == "Last 7 Days":
+                    start_date = (now - timedelta(days=7)).isoformat()
+                elif time_range == "Last 30 Days":
+                    start_date = (now - timedelta(days=30)).isoformat()
+                else:
+                    start_date = None
+                
+                link_id = link[0] if len(link) > 0 else None
+                clicks_data = get_clicks_for_link(link_id, short_code, start_date)
+                
+                if clicks_data:
+                    num_columns = len(clicks_data[0]) if clicks_data else 0
+                    
+                    if num_columns >= 15:
+                        df = pd.DataFrame(clicks_data, columns=[
+                            'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
+                            'city', 'region', 'latitude', 'longitude', 'isp', 'device_type', 
+                            'browser', 'browser_version', 'os', 'os_version', 'referrer', 
+                            'user_agent', 'session_id', 'is_unique'
+                        ][:num_columns])
+                    else:
+                        df = pd.DataFrame(clicks_data, columns=[
+                            'id', 'link_id', 'short_code', 'timestamp', 'ip_address', 'country', 
+                            'city', 'device_type', 'browser', 'os'
+                        ][:num_columns])
+                    
+                    if 'timestamp' in df.columns:
+                        df['display_time'] = df['timestamp'].apply(format_timestamp)
+                    
+                    st.markdown("##### 📊 Key Metrics")
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div class="metric-value">{len(df):,}</div>
+                            <div class="metric-label">Clicks</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        unique_countries = df['country'].nunique() if 'country' in df.columns else 0
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div class="metric-value">{unique_countries}</div>
+                            <div class="metric-label">Countries</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        unique_visitors = df['session_id'].nunique() if 'session_id' in df.columns else len(df)
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div class="metric-value">{unique_visitors:,}</div>
+                            <div class="metric-label">Unique Visitors</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col4:
+                        mobile_pct = (df['device_type'] == 'Mobile').mean() * 100 if 'device_type' in df.columns else 0
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div class="metric-value">{mobile_pct:.1f}%</div>
+                            <div class="metric-label">Mobile</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("##### 📈 Visual Analytics")
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("###### Clicks Over Time")
+                        if 'timestamp' in df.columns and not df.empty:
+                            df['timestamp_dt'] = pd.to_datetime(df['timestamp'], errors='coerce')
+                            df_clean = df.dropna(subset=['timestamp_dt'])
+                            
+                            if not df_clean.empty:
+                                df_clean['date'] = df_clean['timestamp_dt'].dt.date
+                                timeline = df_clean.groupby('date').size().reset_index(name='count')
+                                
+                                if not timeline.empty:
+                                    fig = px.line(timeline, x='date', y='count', markers=True)
+                                    fig.update_layout(
+                                        height=350, margin=dict(l=40, r=40, t=40, b=40),
+                                        hovermode='x unified', plot_bgcolor='white', paper_bgcolor='white'
+                                    )
+                                    fig.update_traces(line_color='#3182ce', marker_color='#3182ce', line_width=3)
+                                    st.plotly_chart(fig, use_container_width=True)
+                                else:
+                                    st.info("No timeline data")
+                            else:
+                                st.info("No valid timestamp data")
+                    
+                    with col2:
+                        st.markdown("###### Top Countries")
+                        if 'country' in df.columns:
+                            countries = df[df['country'] != 'Unknown']['country'].value_counts().head(10)
+                            if not countries.empty:
+                                fig = px.bar(x=countries.values, y=countries.index, orientation='h')
+                                fig.update_layout(
+                                    height=350, margin=dict(l=40, r=40, t=40, b=40),
+                                    showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
+                                )
+                                fig.update_traces(marker_color='#3182ce')
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("No country data")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("###### Device Types")
+                        if 'device_type' in df.columns:
+                            devices = df['device_type'].value_counts()
+                            if not devices.empty:
+                                fig = px.pie(values=devices.values, names=devices.index, hole=0.4)
+                                fig.update_layout(
+                                    height=350, margin=dict(l=40, r=40, t=60, b=40),
+                                    plot_bgcolor='white', paper_bgcolor='white'
+                                )
+                                fig.update_traces(marker=dict(colors=['#3182ce', '#2c3e50', '#2f855a']))
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("No device data")
+                    
+                    with col2:
+                        st.markdown("###### Top Browsers")
+                        if 'browser' in df.columns:
+                            browsers = df[df['browser'] != 'Unknown']['browser'].value_counts().head(5)
+                            if not browsers.empty:
+                                fig = px.bar(x=browsers.values, y=browsers.index, orientation='h')
+                                fig.update_layout(
+                                    height=350, margin=dict(l=40, r=40, t=60, b=40),
+                                    showlegend=False, plot_bgcolor='white', paper_bgcolor='white'
+                                )
+                                fig.update_traces(marker_color='#2f855a')
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("No browser data")
+                    
+                    if 'latitude' in df.columns and 'longitude' in df.columns:
+                        map_df = df[df['latitude'].notna() & (df['latitude'] != 0)]
+                        if not map_df.empty:
+                            st.markdown("##### 🗺️ Click Locations Map")
+                            st.map(map_df[['latitude', 'longitude']], zoom=1, use_container_width=True)
+                    
+                    st.markdown("##### 📋 Recent Clicks")
+                    display_cols = ['display_time' if 'display_time' in df.columns else 'timestamp']
+                    for col in ['country', 'city', 'device_type', 'browser', 'os']:
+                        if col in df.columns:
+                            display_cols.append(col)
+                    
+                    if display_cols:
+                        display_df = df[display_cols].head(100)
+                        if 'display_time' in display_df.columns:
+                            display_df = display_df.rename(columns={'display_time': 'Time'})
+                        st.dataframe(display_df, use_container_width=True)
+                    
+                    st.markdown("##### 📥 Export Data")
+                    csv = df.to_csv(index=False)
+                    st.download_button(
+                        "📥 Download Full Data as CSV",
+                        csv,
+                        f"{short_code}_analytics.csv",
+                        "text/csv",
+                        use_container_width=True
+                    )
+                    
+                else:
+                    st.info("📭 No clicks recorded for this link yet. Share your link to start tracking!")
             else:
-                st.info("📭 No clicks recorded for this link yet. Share your link to start tracking!")
+                st.error("Could not retrieve link details")
+        else:
+            st.warning("No valid links found")
     else:
         st.info("👋 No links created yet. Go to the 'Create Short Link' tab to create your first tracking link!")
 
 # ============================================================================
-# TAB 3: Live Click Feed (Enhanced)
+# TAB 3: Live Click Feed (Enhanced with Error Handling)
 # ============================================================================
 with tab3:
     st.markdown("### 🔴 Live Click Feed")
     st.markdown("*Watch clicks happen in real-time across all your links*")
     
-    # Add auto-refresh option
     auto_refresh = st.checkbox("Auto-refresh (every 10 seconds)", value=True)
     
-    # Get recent clicks with safe query
     try:
-        c.execute("""
+        recent = execute_query("""
             SELECT c.timestamp, c.short_code, c.country, c.city, c.device_type, c.browser, c.os
             FROM clicks c
             ORDER BY c.timestamp DESC LIMIT 50
         """)
-        recent = c.fetchall()
     except:
-        # Fallback without short_code
-        try:
-            c.execute("""
-                SELECT c.timestamp, c.link_id, c.country, c.city, c.device_type, c.browser, c.os
-                FROM clicks c
-                ORDER BY c.timestamp DESC LIMIT 50
-            """)
-            recent = [(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in c.fetchall()]
-        except:
-            recent = []
+        recent = execute_query("""
+            SELECT c.timestamp, c.link_id, c.country, c.city, c.device_type, c.browser, c.os
+            FROM clicks c
+            ORDER BY c.timestamp DESC LIMIT 50
+        """)
     
     if recent:
         st.markdown(f"*Showing {len(recent)} most recent clicks*")
         
         for click in recent:
-            timestamp, code, country, city, device, browser, os = click
-            
-            # Format time for display
-            display_time = format_timestamp(timestamp)
-            
-            # Calculate time ago
-            try:
-                click_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                now = datetime.now()
-                time_diff = now - click_time
+            if len(click) >= 7:
+                timestamp, code, country, city, device, browser, os = click[:7]
                 
-                if time_diff.total_seconds() < 60:
-                    time_str = f"{int(time_diff.total_seconds())} seconds ago"
-                elif time_diff.total_seconds() < 3600:
-                    minutes = int(time_diff.total_seconds()/60)
-                    time_str = f"{minutes} minute{'s' if minutes != 1 else ''} ago"
-                elif time_diff.total_seconds() < 86400:
-                    hours = int(time_diff.total_seconds()/3600)
-                    time_str = f"{hours} hour{'s' if hours != 1 else ''} ago"
-                else:
-                    days = int(time_diff.total_seconds()/86400)
-                    time_str = f"{days} day{'s' if days != 1 else ''} ago"
-            except:
-                time_str = "recently"
-            
-            st.markdown(f"""
-            <div class="click-card">
-                <div class="click-card-header">
-                    <span class="click-card-code">🔗 <a href="{APP_URL}/?go={code}" target="_blank">{code}</a></span>
-                    <span class="click-card-time">{time_str}</span>
+                display_time = format_timestamp(timestamp)
+                
+                try:
+                    click_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    now = datetime.now()
+                    time_diff = now - click_time
+                    
+                    if time_diff.total_seconds() < 60:
+                        time_str = f"{int(time_diff.total_seconds())} seconds ago"
+                    elif time_diff.total_seconds() < 3600:
+                        minutes = int(time_diff.total_seconds()/60)
+                        time_str = f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+                    elif time_diff.total_seconds() < 86400:
+                        hours = int(time_diff.total_seconds()/3600)
+                        time_str = f"{hours} hour{'s' if hours != 1 else ''} ago"
+                    else:
+                        days = int(time_diff.total_seconds()/86400)
+                        time_str = f"{days} day{'s' if days != 1 else ''} ago"
+                except:
+                    time_str = "recently"
+                
+                city_display = f" · {city}" if city and city != 'Unknown' else ''
+                
+                st.markdown(f"""
+                <div class="click-card">
+                    <div class="click-card-header">
+                        <span class="click-card-code">🔗 <a href="{APP_URL}/?go={code}" target="_blank">{code}</a></span>
+                        <span class="click-card-time">{time_str}</span>
+                    </div>
+                    <div class="click-card-details">
+                        <span>🌍 {country}{city_display}</span>
+                        <span>📱 {device}</span>
+                        <span>🌐 {browser}</span>
+                        <span>💻 {os}</span>
+                    </div>
                 </div>
-                <div class="click-card-details">
-                    <span>🌍 {country}{f' · {city}' if city and city != 'Unknown' else ''}</span>
-                    <span>📱 {device}</span>
-                    <span>🌐 {browser}</span>
-                    <span>💻 {os}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
         
         if auto_refresh:
             st.caption("🔄 Page will auto-refresh every 10 seconds")
@@ -1807,7 +1713,7 @@ with tab3:
         st.info("📭 No clicks recorded yet. Share your links to start tracking!")
 
 # ============================================================================
-# FIXED REDIRECT HANDLER - This runs when someone clicks a short link
+# REDIRECT HANDLER - This runs when someone clicks a short link
 # ============================================================================
 short_code = None
 
@@ -1816,44 +1722,27 @@ if 'go' in st.query_params:
 elif 'id' in st.query_params:
     short_code = st.query_params['id']
 
-# IMPORTANT: This must run before any other UI elements
 if short_code:
     try:
-        # Try to get by short_code first
-        c.execute("SELECT id, original_url, clicks FROM links WHERE short_code=?", (short_code,))
-        result = c.fetchone()
-        
-        # If not found, try by id (for backward compatibility)
+        result = execute_query("SELECT id, original_url, clicks FROM links WHERE short_code=?", (short_code,))
         if not result:
-            c.execute("SELECT id, original_url, clicks FROM links WHERE id=?", (short_code,))
-            result = c.fetchone()
+            result = execute_query("SELECT id, original_url, clicks FROM links WHERE id=?", (short_code,))
         
-        if result:
-            link_id = result[0]
-            original_url = result[1]
-            current_clicks = result[2]
+        if result and len(result[0]) >= 3:
+            link_id = result[0][0]
+            original_url = result[0][1]
+            current_clicks = result[0][2]
             
-            # Get accurate geolocation
             geo_data = get_accurate_geo_info()
-            
-            # Parse user agent
             user_agent_string = st.query_params.get('user_agent', 'Unknown')
             ua_info = parse_user_agent_accurate(user_agent_string)
-            
-            # Get local time for click timestamp
             click_time = get_local_time()
-            
-            # Generate session ID for unique visitor tracking
             session_id = hashlib.md5(
                 f"{geo_data['ip']}{short_code}{datetime.now().strftime('%Y-%m-%d')}".encode()
             ).hexdigest()
-            
-            # Get referrer
             referrer = st.query_params.get('referrer', 'Direct')
             
-            # ===== RECORD THE CLICK =====
             try:
-                # Insert click record
                 c.execute("""
                     INSERT INTO clicks (
                         link_id, short_code, timestamp, ip_address, country, city, 
@@ -1866,18 +1755,11 @@ if short_code:
                     ua_info['os'], referrer, user_agent_string, session_id
                 ))
                 
-                # Update click count in links table
                 c.execute("UPDATE links SET clicks = clicks + 1 WHERE id = ?", (link_id,))
                 conn.commit()
-                
-                print(f"✅ Click recorded for {short_code} - Total clicks: {current_clicks + 1}")
-                
             except Exception as e:
-                print(f"Error recording click: {e}")
-                conn.rollback()
+                print(f"Click recording error: {e}")
             
-            # ===== REDIRECT TO ORIGINAL URL =====
-            # Use HTML meta refresh for reliable redirect
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -1929,11 +1811,6 @@ if short_code:
                         margin: 1rem 0;
                         font-size: 1.1rem;
                     }}
-                    .details {{
-                        color: rgba(255,255,255,0.9);
-                        font-size: 0.95rem;
-                        margin-top: 0.5rem;
-                    }}
                 </style>
             </head>
             <body>
@@ -1945,22 +1822,18 @@ if short_code:
                             <span>🌍 {geo_data['country']}</span>
                             <span>📱 {ua_info['device_type']}</span>
                         </div>
-                        <div class="details">
+                        <div>
                             {geo_data['city'] if geo_data['city'] != 'Unknown' else ''} · {ua_info['browser']}
                         </div>
                     </div>
                     <div class="loader"></div>
                     <p style="font-size:1.2rem;">Redirecting you to your destination...</p>
-                    <p style="opacity:0.8; font-size:0.9rem;">Click tracked successfully</p>
                 </div>
             </body>
             </html>
             """
             
-            # Clear any existing content and show redirect page
             st.markdown(html_content, unsafe_allow_html=True)
-            
-            # Stop further Streamlit execution
             st.stop()
             
         else:

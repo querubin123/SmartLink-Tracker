@@ -47,7 +47,7 @@ def safe_execute(default_return=None, error_message="An error occurred"):
     return decorator
 
 # ============================================================================
-# CLEAN PROFESSIONAL UI - Light Theme
+# CLEAN PROFESSIONAL UI - Light Theme with Light Inputs
 # ============================================================================
 
 st.markdown("""
@@ -503,15 +503,16 @@ st.markdown("""
         border: 1px solid var(--border-light);
     }
 
-    /* ===== FORM ELEMENTS ===== */
+    /* ===== FORM ELEMENTS - LIGHT BACKGROUNDS ===== */
     .stTextInput > div > div > input {
+        background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
         padding: 0.75rem 1.25rem !important;
         font-size: 1rem !important;
         transition: var(--transition) !important;
-        background: white !important;
         color: var(--text-primary) !important;
+        box-shadow: none !important;
     }
 
     .stTextInput > div > div > input:hover {
@@ -521,25 +522,45 @@ st.markdown("""
     .stTextInput > div > div > input:focus {
         border-color: var(--border-focus) !important;
         box-shadow: var(--shadow-focus) !important;
+        outline: none !important;
     }
 
     .stTextInput > div > div > input::placeholder {
         color: var(--text-muted) !important;
         font-size: 0.95rem;
+        opacity: 1;
     }
 
     .stSelectbox > div > div > div {
+        background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
         padding: 0.5rem !important;
         color: var(--text-primary) !important;
+        min-height: 45px;
     }
 
     .stSelectbox:hover > div > div > div {
         border-color: var(--border-medium) !important;
     }
 
-    /* ===== BUTTONS ===== */
+    .stSelectbox > div > div > div:focus {
+        border-color: var(--border-focus) !important;
+        box-shadow: var(--shadow-focus) !important;
+    }
+
+    /* Dropdown menu styling */
+    div[data-baseweb="select"] > div {
+        background-color: white !important;
+    }
+
+    div[data-baseweb="popover"] > div {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    /* ===== BUTTONS - LIGHT BACKGROUNDS ===== */
     .stButton > button {
         background: var(--primary) !important;
         color: var(--text-white) !important;
@@ -559,6 +580,41 @@ st.markdown("""
         box-shadow: var(--shadow-md) !important;
     }
 
+    .stButton > button:active {
+        background: var(--primary-dark) !important;
+        transform: translateY(0) !important;
+    }
+
+    .stButton > button:focus {
+        outline: none !important;
+        box-shadow: var(--shadow-focus) !important;
+    }
+
+    /* Download button styling */
+    .stDownloadButton > button {
+        background: white !important;
+        color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 500 !important;
+        border-radius: var(--radius-sm) !important;
+        transition: var(--transition) !important;
+        width: 100%;
+        font-size: 1rem !important;
+    }
+
+    .stDownloadButton > button:hover {
+        background: var(--primary) !important;
+        color: white !important;
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    .stDownloadButton > button:active {
+        background: var(--primary-dark) !important;
+        transform: translateY(0) !important;
+    }
+
     /* ===== TABS ===== */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2.5rem;
@@ -574,6 +630,7 @@ st.markdown("""
         font-size: 1.1rem;
         transition: var(--transition);
         margin-bottom: -1px;
+        background: transparent !important;
     }
 
     .stTabs [aria-selected="true"] {
@@ -636,26 +693,6 @@ st.markdown("""
 
     .stDataFrame tr:hover td {
         background: var(--bg-hover) !important;
-    }
-
-    /* ===== DOWNLOAD BUTTON ===== */
-    .stDownloadButton > button {
-        background: white !important;
-        color: var(--primary) !important;
-        border: 1px solid var(--primary) !important;
-        padding: 0.75rem 2rem !important;
-        font-weight: 500 !important;
-        border-radius: var(--radius-sm) !important;
-        transition: var(--transition) !important;
-        width: 100%;
-        font-size: 1rem !important;
-    }
-
-    .stDownloadButton > button:hover {
-        background: var(--primary) !important;
-        color: white !important;
-        transform: translateY(-1px) !important;
-        box-shadow: var(--shadow-md) !important;
     }
 
     /* ===== FOOTER ===== */
@@ -786,6 +823,43 @@ st.markdown("""
 
     ::-webkit-scrollbar-thumb:hover {
         background: var(--text-muted);
+    }
+
+    /* ===== ADDITIONAL SAFEGUARDS ===== */
+    /* Ensure all input-like elements have light backgrounds */
+    input, select, textarea, [contenteditable="true"] {
+        background-color: white !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Ensure all button-like elements have appropriate styling */
+    button:not(.stButton > button) {
+        background-color: var(--primary) !important;
+        color: white !important;
+    }
+
+    /* Override any potential dark themes */
+    .stApp [data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+
+    .stApp [data-testid="stToolbar"] {
+        background-color: transparent !important;
+    }
+
+    /* Ensure dropdown options are readable */
+    [data-baseweb="select"] [role="listbox"] {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+    }
+
+    [data-baseweb="select"] [role="option"] {
+        color: var(--text-secondary) !important;
+        background-color: white !important;
+    }
+
+    [data-baseweb="select"] [role="option"]:hover {
+        background-color: var(--bg-hover) !important;
     }
 </style>
 """, unsafe_allow_html=True)

@@ -47,7 +47,7 @@ def safe_execute(default_return=None, error_message="An error occurred"):
     return decorator
 
 # ============================================================================
-# CLEAN PROFESSIONAL UI - Light Theme with Light Inputs
+# CLEAN PROFESSIONAL UI - Light Theme with Visible Text
 # ============================================================================
 
 st.markdown("""
@@ -503,7 +503,8 @@ st.markdown("""
         border: 1px solid var(--border-light);
     }
 
-    /* ===== FORM ELEMENTS - LIGHT BACKGROUNDS ===== */
+    /* ===== FORM ELEMENTS - LIGHT BACKGROUNDS WITH VISIBLE TEXT ===== */
+    /* Text inputs */
     .stTextInput > div > div > input {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
@@ -531,36 +532,119 @@ st.markdown("""
         opacity: 1;
     }
 
-    .stSelectbox > div > div > div {
+    /* ===== SELECT/DROPDOWN FIELDS - FIXED ===== */
+    /* Main select container */
+    .stSelectbox > div {
+        background-color: transparent !important;
+    }
+
+    /* The select box itself */
+    .stSelectbox > div > div {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        padding: 0.5rem !important;
-        color: var(--text-primary) !important;
-        min-height: 45px;
+        min-height: 45px !important;
     }
 
-    .stSelectbox:hover > div > div > div {
+    /* The selected value text */
+    .stSelectbox > div > div > div {
+        color: var(--text-primary) !important;
+        background-color: white !important;
+        font-weight: 500 !important;
+    }
+
+    /* The dropdown arrow */
+    .stSelectbox svg {
+        fill: var(--text-secondary) !important;
+        color: var(--text-secondary) !important;
+    }
+
+    /* Hover state */
+    .stSelectbox:hover > div > div {
         border-color: var(--border-medium) !important;
     }
 
-    .stSelectbox > div > div > div:focus {
+    /* Focus state */
+    .stSelectbox > div > div:focus-within {
         border-color: var(--border-focus) !important;
         box-shadow: var(--shadow-focus) !important;
     }
 
-    /* Dropdown menu styling */
-    div[data-baseweb="select"] > div {
-        background-color: white !important;
+    /* ===== DROPDOWN MENU/POPOVER ===== */
+    /* The dropdown options container */
+    div[data-baseweb="popover"] {
+        background-color: transparent !important;
     }
 
     div[data-baseweb="popover"] > div {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
-        box-shadow: var(--shadow-md) !important;
+        border-radius: var(--radius-sm) !important;
+        box-shadow: var(--shadow-lg) !important;
+        padding: 0.5rem 0 !important;
+        margin-top: 4px !important;
     }
 
-    /* ===== BUTTONS - LIGHT BACKGROUNDS ===== */
+    /* Individual option items */
+    div[data-baseweb="popover"] [role="option"] {
+        background-color: white !important;
+        color: var(--text-secondary) !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.95rem !important;
+        transition: var(--transition) !important;
+        cursor: pointer !important;
+    }
+
+    /* Hover state for options */
+    div[data-baseweb="popover"] [role="option"]:hover {
+        background-color: var(--bg-hover) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Selected option highlight */
+    div[data-baseweb="popover"] [role="option"][aria-selected="true"] {
+        background-color: var(--bg-hover) !important;
+        color: var(--primary) !important;
+        font-weight: 600 !important;
+    }
+
+    /* ===== NUMBER INPUT FIELDS ===== */
+    .stNumberInput > div > div > input {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1.25rem !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ===== DATE INPUT FIELDS ===== */
+    .stDateInput > div > div > input {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1.25rem !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ===== TIME INPUT FIELDS ===== */
+    .stTimeInput > div > div > input {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1.25rem !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ===== TEXT AREA FIELDS ===== */
+    .stTextArea > div > div > textarea {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1.25rem !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ===== BUTTONS ===== */
     .stButton > button {
         background: var(--primary) !important;
         color: var(--text-white) !important;
@@ -738,6 +822,15 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
+    /* ===== CHECKBOX ===== */
+    .stCheckbox label {
+        color: var(--text-secondary) !important;
+    }
+
+    .stCheckbox > div {
+        background-color: white !important;
+    }
+
     /* ===== METRICS ===== */
     [data-testid="stMetricValue"] {
         color: var(--primary) !important;
@@ -826,16 +919,10 @@ st.markdown("""
     }
 
     /* ===== ADDITIONAL SAFEGUARDS ===== */
-    /* Ensure all input-like elements have light backgrounds */
-    input, select, textarea, [contenteditable="true"] {
+    /* Ensure all interactive elements have light backgrounds */
+    input, select, textarea, [contenteditable="true"], [role="combobox"] {
         background-color: white !important;
         color: var(--text-primary) !important;
-    }
-
-    /* Ensure all button-like elements have appropriate styling */
-    button:not(.stButton > button) {
-        background-color: var(--primary) !important;
-        color: white !important;
     }
 
     /* Override any potential dark themes */
@@ -847,19 +934,10 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* Ensure dropdown options are readable */
-    [data-baseweb="select"] [role="listbox"] {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-    }
-
-    [data-baseweb="select"] [role="option"] {
-        color: var(--text-secondary) !important;
-        background-color: white !important;
-    }
-
-    [data-baseweb="select"] [role="option"]:hover {
-        background-color: var(--bg-hover) !important;
+    /* Ensure all text remains visible */
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 </style>
 """, unsafe_allow_html=True)

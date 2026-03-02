@@ -545,7 +545,7 @@ st.markdown("""
         color: var(--text-primary) !important;
     }
 
-    /* ===== BUTTONS - FIXED - LIGHT BACKGROUND ===== */
+    /* ===== BUTTONS - FIXED - NO HOVER EFFECT ===== */
     .stButton > button {
         background: var(--primary) !important;
         color: var(--text-white) !important;
@@ -554,18 +554,30 @@ st.markdown("""
         font-weight: 500 !important;
         font-size: 0.95rem !important;
         border-radius: var(--radius-sm) !important;
-        transition: var(--transition) !important;
         width: 100%;
+        box-shadow: var(--shadow-sm) !important;
+        transition: none !important; /* Remove all transitions */
+        transform: none !important; /* Remove any transforms */
+    }
+
+    /* Remove hover effects completely */
+    .stButton > button:hover {
+        background: var(--primary) !important; /* Keep same color on hover */
+        color: var(--text-white) !important;
+        transform: none !important;
         box-shadow: var(--shadow-sm) !important;
     }
 
-    .stButton > button:hover {
-        background: var(--primary-dark) !important;
+    /* Remove active/pressed effects */
+    .stButton > button:active {
+        background: var(--primary) !important;
+        transform: none !important;
     }
 
+    /* Remove focus effects */
     .stButton > button:focus {
         outline: none !important;
-        box-shadow: var(--shadow-focus) !important;
+        box-shadow: var(--shadow-sm) !important;
     }
 
     /* Ensure the button text is white for contrast */
@@ -581,14 +593,63 @@ st.markdown("""
         padding: 0.6rem 1.5rem !important;
         font-weight: 500 !important;
         border-radius: var(--radius-sm) !important;
-        transition: var(--transition) !important;
         width: 100%;
         font-size: 0.95rem !important;
+        transition: none !important;
     }
 
     .stDownloadButton > button:hover {
-        background: var(--primary) !important;
-        color: white !important;
+        background: white !important; /* Keep same on hover */
+        color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        transform: none !important;
+    }
+
+    /* ===== EXPANDER / ACCORDION - FIXED - NO BLACK BACKGROUND ===== */
+    .streamlit-expanderHeader {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1rem !important;
+        font-weight: 500 !important;
+        color: var(--text-primary) !important;
+        font-size: 0.95rem !important;
+        box-shadow: none !important;
+    }
+
+    /* Remove hover effects */
+    .streamlit-expanderHeader:hover {
+        background-color: white !important;
+        border-color: var(--border-medium) !important;
+    }
+
+    /* When expanded */
+    .streamlit-expanderHeader[aria-expanded="true"] {
+        background-color: white !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    /* Expander content - when open */
+    .streamlit-expanderContent {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-top: none !important;
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+        padding: 1.5rem !important;
+    }
+
+    /* Override any potential dark backgrounds */
+    .streamlit-expanderHeader svg {
+        fill: var(--text-tertiary) !important;
+        color: var(--text-tertiary) !important;
+    }
+
+    /* Ensure the expander text is always dark */
+    .streamlit-expanderHeader p,
+    .streamlit-expanderHeader span,
+    .streamlit-expanderHeader div {
+        color: var(--text-primary) !important;
     }
 
     /* ===== TABS ===== */
@@ -616,31 +677,6 @@ st.markdown("""
 
     .stTabs [data-baseweb="tab"]:hover {
         color: var(--text-primary) !important;
-    }
-
-    /* ===== EXPANDER ===== */
-    .streamlit-expanderHeader {
-        background: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1rem !important;
-        font-weight: 500 !important;
-        color: var(--text-primary) !important;
-        transition: var(--transition) !important;
-        font-size: 0.95rem !important;
-    }
-
-    .streamlit-expanderHeader:hover {
-        border-color: var(--border-medium) !important;
-        background: var(--bg-light) !important;
-    }
-
-    .streamlit-expanderContent {
-        border: 1px solid var(--border-light) !important;
-        border-top: none !important;
-        border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
-        padding: 1.5rem !important;
-        background: white;
     }
 
     /* ===== DATAFRAMES ===== */
@@ -816,7 +852,6 @@ st.markdown("""
 st.markdown('<h1 class="simple-title">🔗 URL Shortener & Analytics</h1>', unsafe_allow_html=True)
 
 APP_URL = "https://smartlink-tracker.streamlit.app"
-
 
 
 # ============================================================================

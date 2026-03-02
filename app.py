@@ -47,55 +47,51 @@ def safe_execute(default_return=None, error_message="An error occurred"):
     return decorator
 
 # ============================================================================
-# CLEAN PROFESSIONAL UI - Light Theme with Visible Text
+# MINIMALIST PROFESSIONAL UI - Clean & Elegant
 # ============================================================================
 
 st.markdown("""
 <style>
-    /* ===== CLEAN PROFESSIONAL COLOR PALETTE - Light Theme ===== */
+    /* ===== MINIMALIST COLOR PALETTE ===== */
     :root {
         --primary: #2563eb;
         --primary-light: #3b82f6;
         --primary-dark: #1d4ed8;
-        --accent: #2563eb;
-        --accent-light: #60a5fa;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+        --success: #059669;
+        --warning: #d97706;
+        --danger: #dc2626;
         
         --bg-main: #ffffff;
         --bg-light: #f9fafb;
         --bg-card: #ffffff;
-        --bg-hover: #eff6ff;
-        --bg-header: #f8fafc;
+        --bg-hover: #f3f4f6;
         
         --text-primary: #111827;
         --text-secondary: #374151;
-        --text-tertiary: #4b5563;
-        --text-muted: #6b7280;
+        --text-tertiary: #6b7280;
+        --text-muted: #9ca3af;
         --text-white: #ffffff;
         --text-link: #2563eb;
-        --text-link-hover: #1d4ed8;
         
         --border-light: #e5e7eb;
         --border-medium: #d1d5db;
         --border-focus: #2563eb;
         
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.1);
         
-        --radius-sm: 6px;
-        --radius-md: 8px;
-        --radius-lg: 12px;
+        --radius-sm: 4px;
+        --radius-md: 6px;
+        --radius-lg: 8px;
         
-        --transition: all 0.2s ease;
+        --transition: all 0.15s ease;
     }
 
     /* ===== GLOBAL STYLES ===== */
     * {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
         box-sizing: border-box;
     }
 
@@ -105,67 +101,67 @@ st.markdown("""
 
     /* Simple title styling */
     .simple-title {
-        font-size: 2.5rem;
-        font-weight: 600;
+        font-size: 2rem;
+        font-weight: 500;
         color: var(--text-primary);
-        margin: 1rem 0 2rem 0;
+        margin: 1.5rem 0 2rem 0;
         padding: 0;
+        letter-spacing: -0.02em;
     }
 
-    /* ===== TYPOGRAPHY - Enhanced Readability ===== */
+    /* ===== TYPOGRAPHY ===== */
     h1, h2, h3, h4, h5, h6 {
         color: var(--text-primary) !important;
-        font-weight: 600 !important;
+        font-weight: 500 !important;
         letter-spacing: -0.02em !important;
         line-height: 1.3 !important;
         margin-bottom: 1rem !important;
     }
 
-    h1 { font-size: 2.5rem !important; }
-    h2 { font-size: 2rem !important; }
-    h3 { font-size: 1.5rem !important; }
-    h4 { font-size: 1.25rem !important; }
+    h1 { font-size: 2rem !important; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.25rem !important; }
+    h4 { font-size: 1.125rem !important; }
 
     p, li, span, div {
         color: var(--text-secondary) !important;
-        line-height: 1.6 !important;
-        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        font-size: 0.95rem !important;
     }
 
     small, .small-text {
         color: var(--text-tertiary) !important;
-        font-size: 0.875rem !important;
+        font-size: 0.85rem !important;
     }
 
-    /* ===== CARDS - Clean White Cards ===== */
+    /* ===== CARDS - Minimal ===== */
     .professional-card {
         background: var(--bg-card);
-        padding: 1.75rem;
+        padding: 1.5rem;
         border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-        margin: 1.25rem 0;
         border: 1px solid var(--border-light);
+        margin: 1rem 0;
         transition: var(--transition);
     }
 
     .professional-card:hover {
-        box-shadow: var(--shadow-md);
         border-color: var(--border-medium);
     }
 
     .professional-card h4 {
         color: var(--text-primary) !important;
-        font-size: 1.2rem !important;
+        font-size: 1rem !important;
         font-weight: 600 !important;
-        margin: 0 0 1.25rem 0 !important;
-        padding-bottom: 1rem;
+        margin: 0 0 1rem 0 !important;
+        padding-bottom: 0.75rem;
         border-bottom: 1px solid var(--border-light);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
 
     .professional-card p {
         color: var(--text-secondary) !important;
-        margin: 0.75rem 0 !important;
-        font-size: 1rem !important;
+        margin: 0.5rem 0 !important;
     }
 
     .professional-card strong {
@@ -177,169 +173,154 @@ st.markdown("""
         color: var(--text-link);
         text-decoration: none;
         font-weight: 500;
-        transition: var(--transition);
     }
 
     .professional-card a:hover {
-        color: var(--text-link-hover);
         text-decoration: underline;
     }
 
     /* ===== URL DISPLAY ===== */
     .url-container {
         background: var(--bg-light);
-        padding: 1.75rem;
+        padding: 1.5rem;
         border-radius: var(--radius-md);
         border: 1px solid var(--border-light);
-        margin: 1.25rem 0;
-        transition: var(--transition);
-    }
-
-    .url-container:hover {
-        border-color: var(--border-focus);
-        background: white;
+        margin: 1rem 0;
     }
 
     .short-url {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
     }
 
     .short-url a {
-        background: var(--primary);
+        background: var(--primary) !important;
         color: var(--text-white) !important;
         text-decoration: none;
-        padding: 0.75rem 1.5rem;
+        padding: 0.6rem 1.2rem;
         border-radius: var(--radius-sm);
-        font-size: 1.2rem;
+        font-size: 1rem;
         font-weight: 500;
         display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         transition: var(--transition);
         border: none;
         box-shadow: var(--shadow-sm);
     }
 
     .short-url a:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
+        background: var(--primary-dark) !important;
     }
 
     .short-url a::before {
         content: '🔗';
-        font-size: 1.3rem;
+        font-size: 1.1rem;
     }
 
     .copy-btn {
-        background: white;
-        border: 1px solid var(--border-medium);
+        background: white !important;
+        border: 1px solid var(--border-medium) !important;
         color: var(--text-secondary) !important;
-        padding: 0.75rem 1.5rem;
+        padding: 0.6rem 1.2rem;
         border-radius: var(--radius-sm);
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 500;
         transition: var(--transition);
         display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
 
     .copy-btn:hover {
-        background: var(--bg-light);
-        border-color: var(--primary);
+        background: var(--bg-light) !important;
+        border-color: var(--primary) !important;
         color: var(--primary) !important;
     }
 
     .copy-btn::before {
         content: '📋';
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .original-url {
         color: var(--text-tertiary) !important;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         word-break: break-all;
-        padding: 1rem 1.25rem;
+        padding: 0.75rem 1rem;
         background: white;
         border-radius: var(--radius-sm);
         border: 1px dashed var(--border-light);
-        margin-top: 1rem;
-        line-height: 1.5;
+        margin-top: 0.75rem;
     }
 
     .original-url::before {
-        content: '📎 Original: ';
-        font-weight: 600;
-        color: var(--text-secondary);
+        content: '📎 ';
+        font-weight: 500;
+        color: var(--text-tertiary);
     }
 
-    /* ===== METRIC CARDS - Clean Stats ===== */
+    /* ===== METRIC CARDS ===== */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.25rem;
-        margin: 2rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
     }
 
     .metric-card {
         background: var(--bg-card);
-        padding: 1.75rem;
+        padding: 1.25rem;
         border-radius: var(--radius-md);
         text-align: center;
         border: 1px solid var(--border-light);
-        box-shadow: var(--shadow-sm);
         transition: var(--transition);
     }
 
     .metric-card:hover {
-        box-shadow: var(--shadow-md);
         border-color: var(--border-medium);
     }
 
     .metric-value {
-        font-size: 2.5rem;
-        font-weight: 700;
+        font-size: 2rem;
+        font-weight: 500;
         color: var(--primary) !important;
         line-height: 1.2;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
     .metric-label {
         color: var(--text-tertiary) !important;
-        font-size: 0.9rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        font-weight: 600;
+        font-weight: 500;
     }
 
     /* ===== CLICK CARDS ===== */
     .click-card {
         background: var(--bg-card);
-        padding: 1.5rem;
+        padding: 1.25rem;
         border-radius: var(--radius-sm);
-        margin: 1rem 0;
+        margin: 0.75rem 0;
         border: 1px solid var(--border-light);
-        border-left: 4px solid var(--primary);
-        box-shadow: var(--shadow-sm);
+        border-left: 3px solid var(--primary);
         transition: var(--transition);
-        animation: slideIn 0.3s ease-out;
+        animation: slideIn 0.2s ease-out;
     }
 
     .click-card:hover {
-        box-shadow: var(--shadow-md);
         background: var(--bg-hover);
     }
 
     @keyframes slideIn {
         from {
             opacity: 0;
-            transform: translateX(-20px);
+            transform: translateX(-10px);
         }
         to {
             opacity: 1;
@@ -351,11 +332,11 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
     }
 
     .click-card-code {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
         color: var(--text-primary) !important;
     }
@@ -363,69 +344,63 @@ st.markdown("""
     .click-card-code a {
         color: var(--text-link);
         text-decoration: none;
-        font-weight: 600;
-        transition: var(--transition);
     }
 
     .click-card-code a:hover {
-        color: var(--text-link-hover);
         text-decoration: underline;
     }
 
     .click-card-time {
         color: var(--text-tertiary) !important;
-        font-size: 0.9rem;
-        font-weight: 500;
+        font-size: 0.8rem;
         background: var(--bg-light);
-        padding: 0.35rem 1rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 50px;
         border: 1px solid var(--border-light);
     }
 
     .click-card-details {
         display: flex;
-        gap: 2rem;
+        gap: 1.5rem;
         flex-wrap: wrap;
     }
 
     .click-card-details span {
         color: var(--text-secondary) !important;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.3rem;
         background: var(--bg-light);
-        padding: 0.4rem 1rem;
+        padding: 0.3rem 0.75rem;
         border-radius: 50px;
         border: 1px solid var(--border-light);
     }
 
     /* ===== SUCCESS BOX ===== */
     .success-box {
-        background: #ecfdf5;
-        padding: 2.5rem;
+        background: #f0fdf4;
+        padding: 2rem;
         border-radius: var(--radius-md);
-        border: 1px solid #a7f3d0;
-        margin: 2rem 0;
-        box-shadow: var(--shadow-sm);
+        border: 1px solid #bbf7d0;
+        margin: 1.5rem 0;
     }
 
     .success-box h3 {
         color: var(--success) !important;
-        font-size: 1.8rem !important;
-        margin: 0 0 1.5rem 0 !important;
-        font-weight: 600 !important;
+        font-size: 1.25rem !important;
+        font-weight: 500 !important;
+        margin: 0 0 1rem 0 !important;
     }
 
     .success-box h3::before {
-        content: '✅';
-        margin-right: 0.75rem;
-        font-size: 2rem;
+        content: '✓';
+        margin-right: 0.5rem;
+        font-size: 1.25rem;
     }
 
     .success-box p {
         color: var(--text-secondary) !important;
-        font-size: 1rem !important;
     }
 
     .success-box strong {
@@ -436,33 +411,31 @@ st.markdown("""
     .success-box code {
         background: #d1fae5;
         color: var(--success) !important;
-        padding: 0.3rem 0.8rem;
+        padding: 0.2rem 0.5rem;
         border-radius: var(--radius-sm);
-        font-weight: 600;
+        font-size: 0.9rem;
         border: 1px solid #6ee7b7;
-        font-size: 1rem;
     }
 
     /* ===== INFO BOX ===== */
     .info-box {
         background: var(--bg-hover);
-        padding: 1.25rem 2rem;
+        padding: 1rem 1.5rem;
         border-radius: var(--radius-sm);
-        border-left: 4px solid var(--primary);
+        border-left: 3px solid var(--primary);
         color: var(--text-secondary) !important;
-        margin: 1.25rem 0;
-        font-weight: 500;
+        margin: 1rem 0;
+        font-size: 0.9rem;
         border: 1px solid var(--border-light);
     }
 
-    /* ===== FORM ELEMENTS - LIGHT BACKGROUNDS WITH VISIBLE TEXT ===== */
-    /* Text inputs */
+    /* ===== FORM ELEMENTS ===== */
     .stTextInput > div > div > input {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
-        font-size: 1rem !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.95rem !important;
         transition: var(--transition) !important;
         color: var(--text-primary) !important;
         box-shadow: none !important;
@@ -480,130 +453,106 @@ st.markdown("""
 
     .stTextInput > div > div > input::placeholder {
         color: var(--text-muted) !important;
-        font-size: 0.95rem;
-        opacity: 1;
+        font-size: 0.9rem;
     }
 
-    /* ===== SELECT/DROPDOWN FIELDS - FIXED ===== */
-    /* Main select container */
-    .stSelectbox > div {
-        background-color: transparent !important;
-    }
-
-    /* The select box itself */
+    /* ===== SELECT/DROPDOWN FIELDS ===== */
     .stSelectbox > div > div {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        min-height: 45px !important;
+        min-height: 42px !important;
     }
 
-    /* The selected value text */
     .stSelectbox > div > div > div {
         color: var(--text-primary) !important;
         background-color: white !important;
-        font-weight: 500 !important;
+        font-weight: 400 !important;
+        font-size: 0.95rem !important;
     }
 
-    /* The dropdown arrow */
     .stSelectbox svg {
-        fill: var(--text-secondary) !important;
-        color: var(--text-secondary) !important;
+        fill: var(--text-tertiary) !important;
+        color: var(--text-tertiary) !important;
     }
 
-    /* Hover state */
     .stSelectbox:hover > div > div {
         border-color: var(--border-medium) !important;
     }
 
-    /* Focus state */
     .stSelectbox > div > div:focus-within {
         border-color: var(--border-focus) !important;
         box-shadow: var(--shadow-focus) !important;
     }
 
-    /* ===== DROPDOWN MENU/POPOVER ===== */
-    /* The dropdown options container */
-    div[data-baseweb="popover"] {
-        background-color: transparent !important;
-    }
-
+    /* ===== DROPDOWN MENU ===== */
     div[data-baseweb="popover"] > div {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        box-shadow: var(--shadow-lg) !important;
-        padding: 0.5rem 0 !important;
-        margin-top: 4px !important;
+        box-shadow: var(--shadow-md) !important;
+        padding: 0.25rem 0 !important;
     }
 
-    /* Individual option items */
     div[data-baseweb="popover"] [role="option"] {
         background-color: white !important;
         color: var(--text-secondary) !important;
-        padding: 0.6rem 1rem !important;
-        font-size: 0.95rem !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem !important;
         transition: var(--transition) !important;
-        cursor: pointer !important;
     }
 
-    /* Hover state for options */
     div[data-baseweb="popover"] [role="option"]:hover {
         background-color: var(--bg-hover) !important;
         color: var(--text-primary) !important;
     }
 
-    /* Selected option highlight */
     div[data-baseweb="popover"] [role="option"][aria-selected="true"] {
         background-color: var(--bg-hover) !important;
         color: var(--primary) !important;
-        font-weight: 600 !important;
+        font-weight: 500 !important;
     }
 
-    /* ===== NUMBER INPUT FIELDS ===== */
-    .stNumberInput > div > div > input {
+    /* ===== TOOLTIPS - FIXED - LIGHT THEME WITH STRONG OVERRIDES ===== */
+    [data-testid="stTooltip"],
+    div[data-baseweb="tooltip"],
+    .stTooltip {
         background-color: white !important;
+        color: var(--text-primary) !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem !important;
+        font-weight: 400 !important;
+        box-shadow: var(--shadow-md) !important;
+        max-width: 250px !important;
+        line-height: 1.4 !important;
+        opacity: 1 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* Tooltip arrow - make it light too */
+    [data-testid="stTooltip"]::before,
+    div[data-baseweb="tooltip"]::before {
+        border-bottom-color: var(--border-light) !important;
+        border-top-color: var(--border-light) !important;
+    }
+
+    /* Override any possible dark backgrounds */
+    .stTooltipContent {
+        background-color: white !important;
         color: var(--text-primary) !important;
     }
 
-    /* ===== DATE INPUT FIELDS ===== */
-    .stDateInput > div > div > input {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== TIME INPUT FIELDS ===== */
-    .stTimeInput > div > div > input {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== TEXT AREA FIELDS ===== */
-    .stTextArea > div > div > textarea {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== BUTTONS ===== */
+    /* ===== BUTTONS - FIXED - LIGHT BACKGROUND ===== */
     .stButton > button {
         background: var(--primary) !important;
         color: var(--text-white) !important;
         border: none !important;
-        padding: 0.75rem 2.5rem !important;
+        padding: 0.6rem 2rem !important;
         font-weight: 500 !important;
-        font-size: 1.1rem !important;
+        font-size: 0.95rem !important;
         border-radius: var(--radius-sm) !important;
         transition: var(--transition) !important;
         width: 100%;
@@ -612,13 +561,6 @@ st.markdown("""
 
     .stButton > button:hover {
         background: var(--primary-dark) !important;
-        transform: translateY(-1px) !important;
-        box-shadow: var(--shadow-md) !important;
-    }
-
-    .stButton > button:active {
-        background: var(--primary-dark) !important;
-        transform: translateY(0) !important;
     }
 
     .stButton > button:focus {
@@ -626,44 +568,42 @@ st.markdown("""
         box-shadow: var(--shadow-focus) !important;
     }
 
-    /* Download button styling */
+    /* Ensure the button text is white for contrast */
+    .stButton > button p {
+        color: white !important;
+    }
+
+    /* Download button */
     .stDownloadButton > button {
         background: white !important;
         color: var(--primary) !important;
         border: 1px solid var(--primary) !important;
-        padding: 0.75rem 2rem !important;
+        padding: 0.6rem 1.5rem !important;
         font-weight: 500 !important;
         border-radius: var(--radius-sm) !important;
         transition: var(--transition) !important;
         width: 100%;
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
     }
 
     .stDownloadButton > button:hover {
         background: var(--primary) !important;
         color: white !important;
-        transform: translateY(-1px) !important;
-        box-shadow: var(--shadow-md) !important;
-    }
-
-    .stDownloadButton > button:active {
-        background: var(--primary-dark) !important;
-        transform: translateY(0) !important;
     }
 
     /* ===== TABS ===== */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2.5rem;
+        gap: 2rem;
         background: transparent;
         padding: 0;
         border-bottom: 1px solid var(--border-light);
     }
 
     .stTabs [data-baseweb="tab"] {
-        padding: 0.75rem 0;
-        font-weight: 600;
+        padding: 0.5rem 0;
+        font-weight: 500;
         color: var(--text-tertiary) !important;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         transition: var(--transition);
         margin-bottom: -1px;
         background: transparent !important;
@@ -680,26 +620,26 @@ st.markdown("""
 
     /* ===== EXPANDER ===== */
     .streamlit-expanderHeader {
-        background: var(--bg-light) !important;
+        background: white !important;
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
-        padding: 1rem 1.5rem !important;
+        padding: 0.75rem 1rem !important;
         font-weight: 500 !important;
         color: var(--text-primary) !important;
         transition: var(--transition) !important;
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
     }
 
     .streamlit-expanderHeader:hover {
-        border-color: var(--border-focus) !important;
-        background: white !important;
+        border-color: var(--border-medium) !important;
+        background: var(--bg-light) !important;
     }
 
     .streamlit-expanderContent {
         border: 1px solid var(--border-light) !important;
         border-top: none !important;
         border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
-        padding: 2rem !important;
+        padding: 1.5rem !important;
         background: white;
     }
 
@@ -708,22 +648,22 @@ st.markdown("""
         border: 1px solid var(--border-light) !important;
         border-radius: var(--radius-sm) !important;
         overflow: hidden !important;
-        box-shadow: var(--shadow-sm) !important;
+        font-size: 0.9rem !important;
     }
 
     .stDataFrame th {
         background: var(--bg-light) !important;
         color: var(--text-primary) !important;
-        font-weight: 600 !important;
-        padding: 1rem !important;
-        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        padding: 0.75rem !important;
+        font-size: 0.85rem !important;
         border-bottom: 1px solid var(--border-light) !important;
     }
 
     .stDataFrame td {
         color: var(--text-secondary) !important;
-        padding: 0.9rem 1rem !important;
-        font-size: 0.95rem !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.85rem !important;
         border-bottom: 1px solid var(--border-light) !important;
     }
 
@@ -734,49 +674,43 @@ st.markdown("""
     /* ===== FOOTER ===== */
     .footer {
         text-align: center;
-        padding: 3rem 2rem 1.5rem;
-        color: var(--text-muted) !important;
-        font-size: 0.9rem;
+        padding: 2rem 2rem 1rem;
+        color: var(--text-tertiary) !important;
+        font-size: 0.8rem;
         border-top: 1px solid var(--border-light);
-        margin-top: 4rem;
+        margin-top: 3rem;
         background: white;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 
     .footer span {
         color: var(--text-tertiary) !important;
-        font-weight: 500;
+        font-weight: 400;
     }
 
     .footer-dot {
-        color: var(--primary) !important;
-        font-size: 1.2rem;
-        margin: 0 0.75rem;
-        font-weight: 700;
+        color: var(--border-medium) !important;
+        font-size: 0.8rem;
+        margin: 0 0.5rem;
     }
 
     /* ===== RADIO BUTTONS ===== */
     .stRadio > div {
         background: white;
-        padding: 0.75rem;
+        padding: 0.5rem;
         border-radius: var(--radius-sm);
         border: 1px solid var(--border-light);
-        transition: var(--transition);
-    }
-
-    .stRadio:hover > div {
-        border-color: var(--border-medium);
     }
 
     .stRadio label {
         color: var(--text-secondary) !important;
-        font-size: 1rem !important;
-        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        font-weight: 400 !important;
     }
 
     /* ===== CHECKBOX ===== */
     .stCheckbox label {
         color: var(--text-secondary) !important;
+        font-size: 0.9rem !important;
     }
 
     .stCheckbox > div {
@@ -786,49 +720,29 @@ st.markdown("""
     /* ===== METRICS ===== */
     [data-testid="stMetricValue"] {
         color: var(--primary) !important;
-        font-size: 2.2rem !important;
-        font-weight: 700 !important;
-        line-height: 1.2;
+        font-size: 1.8rem !important;
+        font-weight: 500 !important;
     }
 
     [data-testid="stMetricLabel"] {
         color: var(--text-tertiary) !important;
-        font-size: 0.9rem !important;
-        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        font-weight: 500 !important;
         text-transform: uppercase;
         letter-spacing: 0.03em;
-    }
-
-    /* ===== TOOLTIPS ===== */
-    [data-testid="stTooltip"] {
-        background: var(--text-primary) !important;
-        color: var(--text-white) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1.25rem !important;
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-        box-shadow: var(--shadow-lg) !important;
-        border: 1px solid var(--border-light) !important;
     }
 
     /* ===== PLOTLY CHARTS ===== */
     .js-plotly-plot {
         border-radius: var(--radius-sm);
         background: white;
-        padding: 1rem;
+        padding: 0.75rem;
         border: 1px solid var(--border-light);
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-    }
-
-    .js-plotly-plot:hover {
-        border-color: var(--border-medium);
-        box-shadow: var(--shadow-md);
     }
 
     /* ===== PROGRESS BARS ===== */
     .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+        background: var(--primary) !important;
         border-radius: var(--radius-sm) !important;
     }
 
@@ -836,13 +750,12 @@ st.markdown("""
     .stAlert {
         border-radius: var(--radius-sm) !important;
         border: 1px solid var(--border-light) !important;
-        box-shadow: var(--shadow-sm) !important;
-        padding: 1.25rem 1.5rem !important;
-        font-weight: 500 !important;
+        padding: 1rem 1.25rem !important;
     }
 
     .stAlert > div {
         color: var(--text-primary) !important;
+        font-size: 0.9rem !important;
     }
 
     /* ===== SPINNERS ===== */
@@ -852,32 +765,29 @@ st.markdown("""
 
     /* ===== SCROLLBARS ===== */
     ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
     }
 
     ::-webkit-scrollbar-track {
         background: var(--bg-light);
-        border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb {
         background: var(--border-medium);
-        border-radius: 4px;
+        border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: var(--text-muted);
+        background: var(--text-tertiary);
     }
 
     /* ===== ADDITIONAL SAFEGUARDS ===== */
-    /* Ensure all interactive elements have light backgrounds */
     input, select, textarea, [contenteditable="true"], [role="combobox"] {
         background-color: white !important;
         color: var(--text-primary) !important;
     }
 
-    /* Override any potential dark themes */
     .stApp [data-testid="stHeader"] {
         background-color: transparent !important;
     }
@@ -886,10 +796,16 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* Ensure all text remains visible */
-    * {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+    /* Override any dark theme defaults */
+    .stApp {
+        background-color: var(--bg-light) !important;
+    }
+
+    /* Ensure all tooltips are light */
+    [role="tooltip"] {
+        background-color: white !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-light) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -900,6 +816,8 @@ st.markdown("""
 st.markdown('<h1 class="simple-title">🔗 URL Shortener & Analytics</h1>', unsafe_allow_html=True)
 
 APP_URL = "https://smartlink-tracker.streamlit.app"
+
+
 
 # ============================================================================
 # DATABASE SETUP WITH COMPREHENSIVE ERROR HANDLING

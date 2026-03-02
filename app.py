@@ -47,16 +47,29 @@ def safe_execute(default_return=None, error_message="An error occurred"):
     return decorator
 
 # ============================================================================
-# MINIMALIST PROFESSIONAL UI - Clean & Elegant
+# ULTRA MINIMALIST UI - Complete Override of All Streamlit Defaults
 # ============================================================================
 
 st.markdown("""
 <style>
+    /* ===== RESET ALL STREAMLIT DEFAULTS ===== */
+    .stApp > header {
+        display: none !important;
+        background-color: transparent !important;
+    }
+    
+    .stApp [data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    
+    .stApp [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
     /* ===== MINIMALIST COLOR PALETTE ===== */
     :root {
         --primary: #2563eb;
-        --primary-light: #3b82f6;
-        --primary-dark: #1d4ed8;
+        --primary-dark: #2563eb; /* Same as primary - no darkening */
         --success: #059669;
         --warning: #d97706;
         --danger: #dc2626;
@@ -79,354 +92,204 @@ st.markdown("""
         
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
         --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.1);
         
         --radius-sm: 4px;
         --radius-md: 6px;
         --radius-lg: 8px;
-        
-        --transition: all 0.15s ease;
     }
 
     /* ===== GLOBAL STYLES ===== */
     * {
-        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif !important;
+        box-sizing: border-box !important;
     }
 
     .stApp {
-        background: var(--bg-light);
+        background: var(--bg-light) !important;
     }
 
     /* Simple title styling */
     .simple-title {
-        font-size: 2rem;
-        font-weight: 500;
-        color: var(--text-primary);
-        margin: 1.5rem 0 2rem 0;
-        padding: 0;
-        letter-spacing: -0.02em;
-    }
-
-    /* ===== TYPOGRAPHY ===== */
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-primary) !important;
+        font-size: 2rem !important;
         font-weight: 500 !important;
+        color: var(--text-primary) !important;
+        margin: 1.5rem 0 2rem 0 !important;
+        padding: 0 !important;
         letter-spacing: -0.02em !important;
-        line-height: 1.3 !important;
-        margin-bottom: 1rem !important;
     }
 
-    h1 { font-size: 2rem !important; }
-    h2 { font-size: 1.5rem !important; }
-    h3 { font-size: 1.25rem !important; }
-    h4 { font-size: 1.125rem !important; }
-
-    p, li, span, div {
-        color: var(--text-secondary) !important;
-        line-height: 1.5 !important;
-        font-size: 0.95rem !important;
-    }
-
-    small, .small-text {
-        color: var(--text-tertiary) !important;
-        font-size: 0.85rem !important;
-    }
-
-    /* ===== CARDS - Minimal ===== */
-    .professional-card {
-        background: var(--bg-card);
-        padding: 1.5rem;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-light);
-        margin: 1rem 0;
-        transition: var(--transition);
-    }
-
-    .professional-card:hover {
-        border-color: var(--border-medium);
-    }
-
-    .professional-card h4 {
-        color: var(--text-primary) !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        margin: 0 0 1rem 0 !important;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-light);
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-
-    .professional-card p {
-        color: var(--text-secondary) !important;
-        margin: 0.5rem 0 !important;
-    }
-
-    .professional-card strong {
-        color: var(--text-primary) !important;
-        font-weight: 600;
-    }
-
-    .professional-card a {
-        color: var(--text-link);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .professional-card a:hover {
-        text-decoration: underline;
-    }
-
-    /* ===== URL DISPLAY ===== */
-    .url-container {
-        background: var(--bg-light);
-        padding: 1.5rem;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-light);
-        margin: 1rem 0;
-    }
-
-    .short-url {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .short-url a {
+    /* ===== BUTTONS - COMPLETE OVERRIDE ===== */
+    .stButton > button {
         background: var(--primary) !important;
         color: var(--text-white) !important;
-        text-decoration: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--radius-sm);
-        font-size: 1rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: var(--transition);
-        border: none;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .short-url a:hover {
-        background: var(--primary-dark) !important;
-    }
-
-    .short-url a::before {
-        content: '🔗';
-        font-size: 1.1rem;
-    }
-
-    .copy-btn {
-        background: white !important;
-        border: 1px solid var(--border-medium) !important;
-        color: var(--text-secondary) !important;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .copy-btn:hover {
-        background: var(--bg-light) !important;
-        border-color: var(--primary) !important;
-        color: var(--primary) !important;
-    }
-
-    .copy-btn::before {
-        content: '📋';
-        font-size: 1.1rem;
-    }
-
-    .original-url {
-        color: var(--text-tertiary) !important;
-        font-size: 0.85rem;
-        word-break: break-all;
-        padding: 0.75rem 1rem;
-        background: white;
-        border-radius: var(--radius-sm);
-        border: 1px dashed var(--border-light);
-        margin-top: 0.75rem;
-    }
-
-    .original-url::before {
-        content: '📎 ';
-        font-weight: 500;
-        color: var(--text-tertiary);
-    }
-
-    /* ===== METRIC CARDS ===== */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
-    }
-
-    .metric-card {
-        background: var(--bg-card);
-        padding: 1.25rem;
-        border-radius: var(--radius-md);
-        text-align: center;
-        border: 1px solid var(--border-light);
-        transition: var(--transition);
-    }
-
-    .metric-card:hover {
-        border-color: var(--border-medium);
-    }
-
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 500;
-        color: var(--primary) !important;
-        line-height: 1.2;
-        margin-bottom: 0.25rem;
-    }
-
-    .metric-label {
-        color: var(--text-tertiary) !important;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        font-weight: 500;
-    }
-
-    /* ===== CLICK CARDS ===== */
-    .click-card {
-        background: var(--bg-card);
-        padding: 1.25rem;
-        border-radius: var(--radius-sm);
-        margin: 0.75rem 0;
-        border: 1px solid var(--border-light);
-        border-left: 3px solid var(--primary);
-        transition: var(--transition);
-        animation: slideIn 0.2s ease-out;
-    }
-
-    .click-card:hover {
-        background: var(--bg-hover);
-    }
-
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    .click-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.75rem;
-    }
-
-    .click-card-code {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary) !important;
-    }
-
-    .click-card-code a {
-        color: var(--text-link);
-        text-decoration: none;
-    }
-
-    .click-card-code a:hover {
-        text-decoration: underline;
-    }
-
-    .click-card-time {
-        color: var(--text-tertiary) !important;
-        font-size: 0.8rem;
-        background: var(--bg-light);
-        padding: 0.25rem 0.75rem;
-        border-radius: 50px;
-        border: 1px solid var(--border-light);
-    }
-
-    .click-card-details {
-        display: flex;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .click-card-details span {
-        color: var(--text-secondary) !important;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        background: var(--bg-light);
-        padding: 0.3rem 0.75rem;
-        border-radius: 50px;
-        border: 1px solid var(--border-light);
-    }
-
-    /* ===== SUCCESS BOX ===== */
-    .success-box {
-        background: #f0fdf4;
-        padding: 2rem;
-        border-radius: var(--radius-md);
-        border: 1px solid #bbf7d0;
-        margin: 1.5rem 0;
-    }
-
-    .success-box h3 {
-        color: var(--success) !important;
-        font-size: 1.25rem !important;
+        border: none !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.6rem 2rem !important;
         font-weight: 500 !important;
-        margin: 0 0 1rem 0 !important;
+        font-size: 0.95rem !important;
+        width: 100% !important;
+        box-shadow: var(--shadow-sm) !important;
+        
+        /* Remove ALL hover/active/focus effects */
+        transition: none !important;
+        transform: none !important;
+        outline: none !important;
+        box-shadow: var(--shadow-sm) !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        filter: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
-    .success-box h3::before {
-        content: '✓';
-        margin-right: 0.5rem;
-        font-size: 1.25rem;
+    /* Kill hover effects completely */
+    .stButton > button:hover,
+    .stButton > button:active,
+    .stButton > button:focus,
+    .stButton > button:focus-visible,
+    .stButton > button:focus-within {
+        background: var(--primary) !important;
+        color: var(--text-white) !important;
+        border: none !important;
+        transform: none !important;
+        box-shadow: var(--shadow-sm) !important;
+        outline: none !important;
+        opacity: 1 !important;
+        filter: none !important;
     }
 
-    .success-box p {
-        color: var(--text-secondary) !important;
+    /* Remove any pseudo-element effects */
+    .stButton > button::before,
+    .stButton > button::after {
+        display: none !important;
     }
 
-    .success-box strong {
+    /* Button text */
+    .stButton > button p {
+        color: var(--text-white) !important;
+        font-weight: 500 !important;
+    }
+
+    /* Download button */
+    .stDownloadButton > button {
+        background: white !important;
+        color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.6rem 1.5rem !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+        width: 100% !important;
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .stDownloadButton > button:hover,
+    .stDownloadButton > button:active,
+    .stDownloadButton > button:focus {
+        background: white !important;
+        color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* ===== EXPANDER / ACCORDION - COMPLETE OVERRIDE ===== */
+    .streamlit-expanderHeader {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.75rem 1rem !important;
         color: var(--text-primary) !important;
-        font-weight: 600;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+        transition: none !important;
+        transform: none !important;
     }
 
-    .success-box code {
-        background: #d1fae5;
-        color: var(--success) !important;
-        padding: 0.2rem 0.5rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.9rem;
-        border: 1px solid #6ee7b7;
+    .streamlit-expanderHeader:hover,
+    .streamlit-expanderHeader:active,
+    .streamlit-expanderHeader:focus {
+        background-color: white !important;
+        border-color: var(--border-medium) !important;
+        color: var(--text-primary) !important;
+        transform: none !important;
     }
 
-    /* ===== INFO BOX ===== */
-    .info-box {
-        background: var(--bg-hover);
-        padding: 1rem 1.5rem;
-        border-radius: var(--radius-sm);
-        border-left: 3px solid var(--primary);
-        color: var(--text-secondary) !important;
-        margin: 1rem 0;
-        font-size: 0.9rem;
-        border: 1px solid var(--border-light);
+    .streamlit-expanderHeader[aria-expanded="true"] {
+        background-color: white !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    .streamlit-expanderContent {
+        background-color: white !important;
+        border: 1px solid var(--border-light) !important;
+        border-top: none !important;
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+        padding: 1.5rem !important;
+    }
+
+    /* Expander icon */
+    .streamlit-expanderHeader svg {
+        fill: var(--text-tertiary) !important;
+        color: var(--text-tertiary) !important;
+    }
+
+    /* ===== TOOLTIPS - COMPLETE OVERRIDE ===== */
+    [data-testid="stTooltip"],
+    div[data-baseweb="tooltip"],
+    .stTooltip,
+    [role="tooltip"] {
+        background-color: white !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem !important;
+        font-weight: 400 !important;
+        box-shadow: var(--shadow-md) !important;
+        max-width: 250px !important;
+        line-height: 1.4 !important;
+        opacity: 1 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        filter: none !important;
+    }
+
+    [data-testid="stTooltip"]::before,
+    div[data-baseweb="tooltip"]::before {
+        border-bottom-color: var(--border-light) !important;
+        border-top-color: var(--border-light) !important;
+    }
+
+    /* ===== TABS ===== */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border-bottom: 1px solid var(--border-light) !important;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.5rem 0 !important;
+        font-weight: 500 !important;
+        color: var(--text-tertiary) !important;
+        font-size: 0.95rem !important;
+        background: transparent !important;
+        border: none !important;
+        transition: none !important;
+        margin-bottom: -1px !important;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: var(--primary) !important;
+        border-bottom: 2px solid var(--primary) !important;
+    }
+
+    .stTabs [data-baseweb="tab"]:hover {
+        color: var(--text-primary) !important;
+        background: transparent !important;
     }
 
     /* ===== FORM ELEMENTS ===== */
@@ -436,7 +299,6 @@ st.markdown("""
         border-radius: var(--radius-sm) !important;
         padding: 0.6rem 1rem !important;
         font-size: 0.95rem !important;
-        transition: var(--transition) !important;
         color: var(--text-primary) !important;
         box-shadow: none !important;
     }
@@ -447,16 +309,15 @@ st.markdown("""
 
     .stTextInput > div > div > input:focus {
         border-color: var(--border-focus) !important;
-        box-shadow: var(--shadow-focus) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
         outline: none !important;
     }
 
     .stTextInput > div > div > input::placeholder {
         color: var(--text-muted) !important;
-        font-size: 0.9rem;
     }
 
-    /* ===== SELECT/DROPDOWN FIELDS ===== */
+    /* ===== SELECT/DROPDOWN ===== */
     .stSelectbox > div > div {
         background-color: white !important;
         border: 1px solid var(--border-light) !important;
@@ -482,7 +343,7 @@ st.markdown("""
 
     .stSelectbox > div > div:focus-within {
         border-color: var(--border-focus) !important;
-        box-shadow: var(--shadow-focus) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
     }
 
     /* ===== DROPDOWN MENU ===== */
@@ -499,7 +360,6 @@ st.markdown("""
         color: var(--text-secondary) !important;
         padding: 0.5rem 1rem !important;
         font-size: 0.9rem !important;
-        transition: var(--transition) !important;
     }
 
     div[data-baseweb="popover"] [role="option"]:hover {
@@ -513,228 +373,249 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* ===== TOOLTIPS - FIXED - LIGHT THEME WITH STRONG OVERRIDES ===== */
-    [data-testid="stTooltip"],
-    div[data-baseweb="tooltip"],
-    .stTooltip {
-        background-color: white !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.5rem 1rem !important;
-        font-size: 0.85rem !important;
-        font-weight: 400 !important;
-        box-shadow: var(--shadow-md) !important;
-        max-width: 250px !important;
-        line-height: 1.4 !important;
-        opacity: 1 !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-
-    /* Tooltip arrow - make it light too */
-    [data-testid="stTooltip"]::before,
-    div[data-baseweb="tooltip"]::before {
-        border-bottom-color: var(--border-light) !important;
-        border-top-color: var(--border-light) !important;
-    }
-
-    /* Override any possible dark backgrounds */
-    .stTooltipContent {
-        background-color: white !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== BUTTONS - FIXED - NO HOVER EFFECT ===== */
-    .stButton > button {
-        background: var(--primary) !important;
-        color: var(--text-white) !important;
-        border: none !important;
-        padding: 0.6rem 2rem !important;
-        font-weight: 500 !important;
-        font-size: 0.95rem !important;
-        border-radius: var(--radius-sm) !important;
-        width: 100%;
-        box-shadow: var(--shadow-sm) !important;
-        transition: none !important; /* Remove all transitions */
-        transform: none !important; /* Remove any transforms */
-    }
-
-    /* Remove hover effects completely */
-    .stButton > button:hover {
-        background: var(--primary) !important; /* Keep same color on hover */
-        color: var(--text-white) !important;
-        transform: none !important;
-        box-shadow: var(--shadow-sm) !important;
-    }
-
-    /* Remove active/pressed effects */
-    .stButton > button:active {
-        background: var(--primary) !important;
-        transform: none !important;
-    }
-
-    /* Remove focus effects */
-    .stButton > button:focus {
-        outline: none !important;
-        box-shadow: var(--shadow-sm) !important;
-    }
-
-    /* Ensure the button text is white for contrast */
-    .stButton > button p {
-        color: white !important;
-    }
-
-    /* Download button */
-    .stDownloadButton > button {
-        background: white !important;
-        color: var(--primary) !important;
-        border: 1px solid var(--primary) !important;
-        padding: 0.6rem 1.5rem !important;
-        font-weight: 500 !important;
-        border-radius: var(--radius-sm) !important;
-        width: 100%;
-        font-size: 0.95rem !important;
-        transition: none !important;
-    }
-
-    .stDownloadButton > button:hover {
-        background: white !important; /* Keep same on hover */
-        color: var(--primary) !important;
-        border: 1px solid var(--primary) !important;
-        transform: none !important;
-    }
-
-    /* ===== EXPANDER / ACCORDION - FIXED - NO BLACK BACKGROUND ===== */
-    .streamlit-expanderHeader {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0.75rem 1rem !important;
-        font-weight: 500 !important;
-        color: var(--text-primary) !important;
-        font-size: 0.95rem !important;
-        box-shadow: none !important;
-    }
-
-    /* Remove hover effects */
-    .streamlit-expanderHeader:hover {
-        background-color: white !important;
-        border-color: var(--border-medium) !important;
-    }
-
-    /* When expanded */
-    .streamlit-expanderHeader[aria-expanded="true"] {
-        background-color: white !important;
-        border-bottom-left-radius: 0 !important;
-        border-bottom-right-radius: 0 !important;
-    }
-
-    /* Expander content - when open */
-    .streamlit-expanderContent {
-        background-color: white !important;
-        border: 1px solid var(--border-light) !important;
-        border-top: none !important;
-        border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+    /* ===== CARDS ===== */
+    .professional-card {
+        background: var(--bg-card) !important;
         padding: 1.5rem !important;
-    }
-
-    /* Override any potential dark backgrounds */
-    .streamlit-expanderHeader svg {
-        fill: var(--text-tertiary) !important;
-        color: var(--text-tertiary) !important;
-    }
-
-    /* Ensure the expander text is always dark */
-    .streamlit-expanderHeader p,
-    .streamlit-expanderHeader span,
-    .streamlit-expanderHeader div {
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== TABS ===== */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        background: transparent;
-        padding: 0;
-        border-bottom: 1px solid var(--border-light);
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        padding: 0.5rem 0;
-        font-weight: 500;
-        color: var(--text-tertiary) !important;
-        font-size: 0.95rem;
-        transition: var(--transition);
-        margin-bottom: -1px;
-        background: transparent !important;
-    }
-
-    .stTabs [aria-selected="true"] {
-        color: var(--primary) !important;
-        border-bottom: 2px solid var(--primary) !important;
-    }
-
-    .stTabs [data-baseweb="tab"]:hover {
-        color: var(--text-primary) !important;
-    }
-
-    /* ===== DATAFRAMES ===== */
-    .stDataFrame {
+        border-radius: var(--radius-md) !important;
         border: 1px solid var(--border-light) !important;
-        border-radius: var(--radius-sm) !important;
-        overflow: hidden !important;
-        font-size: 0.9rem !important;
+        margin: 1rem 0 !important;
     }
 
-    .stDataFrame th {
-        background: var(--bg-light) !important;
+    .professional-card h4 {
         color: var(--text-primary) !important;
-        font-weight: 500 !important;
-        padding: 0.75rem !important;
-        font-size: 0.85rem !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 1rem 0 !important;
+        padding-bottom: 0.75rem !important;
         border-bottom: 1px solid var(--border-light) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.03em !important;
     }
 
-    .stDataFrame td {
+    .professional-card p {
         color: var(--text-secondary) !important;
-        padding: 0.6rem 0.75rem !important;
-        font-size: 0.85rem !important;
-        border-bottom: 1px solid var(--border-light) !important;
+        margin: 0.5rem 0 !important;
     }
 
-    .stDataFrame tr:hover td {
-        background: var(--bg-hover) !important;
+    .professional-card strong {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+    }
+
+    .professional-card a {
+        color: var(--text-link) !important;
+        text-decoration: none !important;
+    }
+
+    .professional-card a:hover {
+        text-decoration: underline !important;
+    }
+
+    /* ===== URL DISPLAY ===== */
+    .url-container {
+        background: var(--bg-light) !important;
+        padding: 1.5rem !important;
+        border-radius: var(--radius-md) !important;
+        border: 1px solid var(--border-light) !important;
+        margin: 1rem 0 !important;
+    }
+
+    .short-url {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .short-url a {
+        background: var(--primary) !important;
+        color: var(--text-white) !important;
+        text-decoration: none !important;
+        padding: 0.6rem 1.2rem !important;
+        border-radius: var(--radius-sm) !important;
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        border: none !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    .short-url a:hover {
+        background: var(--primary) !important; /* No hover change */
+    }
+
+    .copy-btn {
+        background: white !important;
+        border: 1px solid var(--border-medium) !important;
+        color: var(--text-secondary) !important;
+        padding: 0.6rem 1.2rem !important;
+        border-radius: var(--radius-sm) !important;
+        cursor: pointer !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .copy-btn:hover {
+        background: var(--bg-light) !important;
+        border-color: var(--primary) !important;
+        color: var(--primary) !important;
+    }
+
+    .original-url {
+        color: var(--text-tertiary) !important;
+        font-size: 0.85rem !important;
+        word-break: break-all !important;
+        padding: 0.75rem 1rem !important;
+        background: white !important;
+        border-radius: var(--radius-sm) !important;
+        border: 1px dashed var(--border-light) !important;
+        margin-top: 0.75rem !important;
+    }
+
+    /* ===== METRIC CARDS ===== */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+        gap: 1rem !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    .metric-card {
+        background: var(--bg-card) !important;
+        padding: 1.25rem !important;
+        border-radius: var(--radius-md) !important;
+        text-align: center !important;
+        border: 1px solid var(--border-light) !important;
+    }
+
+    .metric-value {
+        font-size: 2rem !important;
+        font-weight: 500 !important;
+        color: var(--primary) !important;
+        line-height: 1.2 !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .metric-label {
+        color: var(--text-tertiary) !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.03em !important;
+        font-weight: 500 !important;
+    }
+
+    /* ===== CLICK CARDS ===== */
+    .click-card {
+        background: var(--bg-card) !important;
+        padding: 1.25rem !important;
+        border-radius: var(--radius-sm) !important;
+        margin: 0.75rem 0 !important;
+        border: 1px solid var(--border-light) !important;
+        border-left: 3px solid var(--primary) !important;
+    }
+
+    .click-card-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .click-card-code {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+    }
+
+    .click-card-code a {
+        color: var(--text-link) !important;
+        text-decoration: none !important;
+    }
+
+    .click-card-time {
+        color: var(--text-tertiary) !important;
+        font-size: 0.8rem !important;
+        background: var(--bg-light) !important;
+        padding: 0.25rem 0.75rem !important;
+        border-radius: 50px !important;
+        border: 1px solid var(--border-light) !important;
+    }
+
+    .click-card-details {
+        display: flex !important;
+        gap: 1.5rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .click-card-details span {
+        color: var(--text-secondary) !important;
+        font-size: 0.9rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        background: var(--bg-light) !important;
+        padding: 0.3rem 0.75rem !important;
+        border-radius: 50px !important;
+        border: 1px solid var(--border-light) !important;
+    }
+
+    /* ===== SUCCESS BOX ===== */
+    .success-box {
+        background: #f0fdf4 !important;
+        padding: 2rem !important;
+        border-radius: var(--radius-md) !important;
+        border: 1px solid #bbf7d0 !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    .success-box h3 {
+        color: var(--success) !important;
+        font-size: 1.25rem !important;
+        font-weight: 500 !important;
+        margin: 0 0 1rem 0 !important;
+    }
+
+    .success-box code {
+        background: #d1fae5 !important;
+        color: var(--success) !important;
+        padding: 0.2rem 0.5rem !important;
+        border-radius: var(--radius-sm) !important;
+        border: 1px solid #6ee7b7 !important;
     }
 
     /* ===== FOOTER ===== */
     .footer {
-        text-align: center;
-        padding: 2rem 2rem 1rem;
+        text-align: center !important;
+        padding: 2rem 2rem 1rem !important;
         color: var(--text-tertiary) !important;
-        font-size: 0.8rem;
-        border-top: 1px solid var(--border-light);
-        margin-top: 3rem;
-        background: white;
+        font-size: 0.8rem !important;
+        border-top: 1px solid var(--border-light) !important;
+        margin-top: 3rem !important;
+        background: white !important;
     }
 
     .footer span {
         color: var(--text-tertiary) !important;
-        font-weight: 400;
     }
 
     .footer-dot {
         color: var(--border-medium) !important;
-        font-size: 0.8rem;
-        margin: 0 0.5rem;
+        margin: 0 0.5rem !important;
     }
 
     /* ===== RADIO BUTTONS ===== */
     .stRadio > div {
-        background: white;
-        padding: 0.5rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-light);
+        background: white !important;
+        padding: 0.5rem !important;
+        border-radius: var(--radius-sm) !important;
+        border: 1px solid var(--border-light) !important;
     }
 
     .stRadio label {
@@ -764,22 +645,16 @@ st.markdown("""
         color: var(--text-tertiary) !important;
         font-size: 0.75rem !important;
         font-weight: 500 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
+        text-transform: uppercase !important;
+        letter-spacing: 0.03em !important;
     }
 
     /* ===== PLOTLY CHARTS ===== */
     .js-plotly-plot {
-        border-radius: var(--radius-sm);
-        background: white;
-        padding: 0.75rem;
-        border: 1px solid var(--border-light);
-    }
-
-    /* ===== PROGRESS BARS ===== */
-    .stProgress > div > div > div > div {
-        background: var(--primary) !important;
         border-radius: var(--radius-sm) !important;
+        background: white !important;
+        padding: 0.75rem !important;
+        border: 1px solid var(--border-light) !important;
     }
 
     /* ===== ALERTS ===== */
@@ -794,54 +669,56 @@ st.markdown("""
         font-size: 0.9rem !important;
     }
 
-    /* ===== SPINNERS ===== */
-    .stSpinner > div {
-        border-color: var(--primary) transparent transparent transparent !important;
-    }
-
     /* ===== SCROLLBARS ===== */
     ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 6px !important;
+        height: 6px !important;
     }
 
     ::-webkit-scrollbar-track {
-        background: var(--bg-light);
+        background: var(--bg-light) !important;
     }
 
     ::-webkit-scrollbar-thumb {
-        background: var(--border-medium);
-        border-radius: 3px;
+        background: var(--border-medium) !important;
+        border-radius: 3px !important;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: var(--text-tertiary);
+        background: var(--text-tertiary) !important;
     }
 
-    /* ===== ADDITIONAL SAFEGUARDS ===== */
-    input, select, textarea, [contenteditable="true"], [role="combobox"] {
-        background-color: white !important;
-        color: var(--text-primary) !important;
-    }
-
-    .stApp [data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-
-    .stApp [data-testid="stToolbar"] {
-        background-color: transparent !important;
-    }
-
-    /* Override any dark theme defaults */
-    .stApp {
+    /* ===== FINAL OVERRIDES ===== */
+    /* Remove any possible dark backgrounds */
+    .stApp,
+    .stApp > div,
+    .stApp > div > div,
+    .main > div,
+    .block-container {
         background-color: var(--bg-light) !important;
     }
 
-    /* Ensure all tooltips are light */
-    [role="tooltip"] {
-        background-color: white !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-light) !important;
+    /* Remove any hover effects on all Streamlit elements */
+    .stButton > button,
+    .stDownloadButton > button,
+    .streamlit-expanderHeader,
+    [data-testid="baseButton-secondary"],
+    [data-testid="baseButton-primary"] {
+        transition: none !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* Force all backgrounds to be light */
+    div:not([class*="dark"]):not([class*="black"]) {
+        background-color: transparent !important;
+    }
+
+    /* Remove any dark theme injections */
+    [data-theme="dark"],
+    [data-theme="dark"] * {
+        background-color: initial !important;
+        color: initial !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -852,7 +729,6 @@ st.markdown("""
 st.markdown('<h1 class="simple-title">🔗 URL Shortener & Analytics</h1>', unsafe_allow_html=True)
 
 APP_URL = "https://smartlink-tracker.streamlit.app"
-
 
 # ============================================================================
 # DATABASE SETUP WITH COMPREHENSIVE ERROR HANDLING

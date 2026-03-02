@@ -103,6 +103,15 @@ st.markdown("""
         background: var(--bg-light);
     }
 
+    /* Simple title styling */
+    .simple-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 1rem 0 2rem 0;
+        padding: 0;
+    }
+
     /* ===== TYPOGRAPHY - Enhanced Readability ===== */
     h1, h2, h3, h4, h5, h6 {
         color: var(--text-primary) !important;
@@ -126,63 +135,6 @@ st.markdown("""
     small, .small-text {
         color: var(--text-tertiary) !important;
         font-size: 0.875rem !important;
-    }
-
-    /* ===== HEADER - Clean & Professional ===== */
-    .professional-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        padding: 2.5rem 2rem;
-        border-radius: var(--radius-lg);
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-lg);
-        color: var(--text-white);
-    }
-
-    .professional-header h1 {
-        color: var(--text-white) !important;
-        font-size: 2.5rem !important;
-        font-weight: 600 !important;
-        margin: 0 !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .professional-header p {
-        color: rgba(255, 255, 255, 0.95) !important;
-        font-size: 1.2rem !important;
-        margin: 0.5rem 0 0 0 !important;
-        font-weight: 400;
-    }
-
-    .domain-badge {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        padding: 0.75rem 2rem;
-        border-radius: 100px;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: var(--text-white) !important;
-        font-size: 1.1rem;
-        font-weight: 500;
-        transition: var(--transition);
-    }
-
-    .domain-badge:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    }
-
-    .domain-badge strong {
-        color: var(--text-white) !important;
-        font-weight: 600;
-        background: rgba(255, 255, 255, 0.25);
-        padding: 0.35rem 1rem;
-        border-radius: 50px;
-        font-family: 'SF Mono', 'Monaco', monospace;
-        font-size: 1rem;
     }
 
     /* ===== CARDS - Clean White Cards ===== */
@@ -943,20 +895,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================================
-# PROFESSIONAL HEADER - Enhanced
+# SIMPLE TITLE - No container, no tagline, no domain badge
 # ============================================================================
-APP_URL = "https://smartlink-tracker.streamlit.app"
+st.markdown('<h1 class="simple-title">🔗 URL Shortener & Analytics</h1>', unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="professional-header">
-    <h1>🔗 URL Shortener & Analytics</h1>
-    <p>Create short links and track every click with precision</p>
-    <div class="domain-badge">
-        <span>✨ Your branded domain</span>
-        <strong>yourbrand.com/<span style="font-weight:400;">[your-code]</span></strong>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+APP_URL = "https://smartlink-tracker.streamlit.app"
 
 # ============================================================================
 # DATABASE SETUP WITH COMPREHENSIVE ERROR HANDLING
@@ -1443,7 +1386,7 @@ with tab1:
                     short_url = f"{APP_URL}/?go={short_code}"
                     display_time = format_timestamp(local_created_time)
                     
-                    # FIXED: Added proper copy button functionality
+                    # Success message with clickable link
                     st.markdown(f"""
                     <div class="success-box">
                         <h3>Link Created Successfully!</h3>
@@ -1468,12 +1411,11 @@ with tab1:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # FIXED: Improved copy function with visual feedback
+                    # JavaScript for copy functionality
                     st.markdown("""
                     <script>
                     function copyToClipboard(text) {
                         navigator.clipboard.writeText(text).then(function() {
-                            // Create and show a temporary notification
                             var notification = document.createElement('div');
                             notification.textContent = '✓ Link copied to clipboard!';
                             notification.style.position = 'fixed';
@@ -1488,7 +1430,6 @@ with tab1:
                             notification.style.fontWeight = '500';
                             document.body.appendChild(notification);
                             
-                            // Remove notification after 2 seconds
                             setTimeout(function() {
                                 notification.remove();
                             }, 2000);
@@ -1647,7 +1588,7 @@ with tab2:
                         except:
                             created_display = str(created_date)
                     
-                    # Link info card - FIXED: Properly format clicks
+                    # Link info card
                     st.markdown(f"""
                     <div class="professional-card">
                         <h4>Link Information</h4>
@@ -2052,7 +1993,7 @@ if short_code:
             # Get referrer
             referrer = st.query_params.get('referrer', 'Direct')
             
-            # ===== FIXED: RECORD THE CLICK WITH PROPER ERROR HANDLING =====
+            # ===== RECORD THE CLICK WITH PROPER ERROR HANDLING =====
             try:
                 # Insert click record
                 c.execute("""
